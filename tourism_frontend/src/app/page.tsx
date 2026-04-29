@@ -5,13 +5,14 @@ import { HeaderSearch } from '@/components/layout/HeaderSearch';
 import { ArtisanProfileCard } from '@/components/feed/ArtisanProfileCard';
 import { ExperienceCard } from '@/components/feed/ExperienceCard';
 import { LiveWeavingHUD } from '@/components/feed/LiveWeavingHUD';
+import DeepScanner from '@/components/feed/DeepScanner';
 import { useRecommendation, FeedItem, Artisan, Experience } from '@/context/RecommendationEngineContext';
 
 export default function Home() {
   const { recommendedItems, activeCategory } = useRecommendation();
 
   return (
-    <div className="relative animate-in fade-in slide-in-from-bottom-4 duration-1000">
+    <div className="relative animate-in fade-in slide-in-from-bottom-4 duration-1000 pb-20">
       {/* Background Ambience */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
         <div className="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] bg-emerald-900/10 blur-[120px] rounded-full"></div>
@@ -20,6 +21,11 @@ export default function Home() {
 
       <HeaderSearch />
       
+      {/* Deep Scanning Discovery Layer */}
+      <div className="mb-6 px-1">
+        <DeepScanner />
+      </div>
+
       {/* Scrollable Feed Area */}
       <div className="space-y-8 mt-2">
         {/* Featured Artisan Dossier / Live HUD Section */}

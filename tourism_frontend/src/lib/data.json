@@ -73,5 +73,21 @@
     { "id": "eco", "label": "🌿 Eco-Tours", "value": "Eco-Tours" },
     { "id": "handloom", "label": "🧶 Authentic Handloom", "value": "Authentic Handloom" },
     { "id": "stalls", "label": "📍 Local Stalls", "value": "Local Stalls" }
+  ],
+  "patterns": [
+    {
+      "id": "p1",
+      "name": "Mising Gadu",
+      "origin": "Majuli, Assam",
+      "texture": "Thick, fuzzy cotton pile",
+      "matchKeywords": ["fuzzy", "cotton", "pile", "white", "majuli"]
+    },
+    {
+      "id": "p2",
+      "name": "Naga Mekhela",
+      "origin": "Nagaland",
+      "texture": "Structured geometric weave",
+      "matchKeywords": ["geometric", "structured", "black", "red", "weave"]
+    }
   ]
 }

@@ -1,0 +1,37 @@
+[
+  {
+    "id": "h-001",
+    "name": "Machu Picchu",
+    "location": "Peru",
+    "type": "Archaeological Site",
+    "description": "A 15th-century Inca citadel located in the Eastern Cordillera of southern Peru."
+  },
+  {
+    "id": "h-002",
+    "name": "Taj Mahal",
+    "location": "India",
+    "type": "Mausoleum",
+    "description": "An ivory-white marble mausoleum on the right bank of the river Yamuna in Agra."
+  },
+  {
+    "id": "h-003",
+    "name": "Colosseum",
+    "location": "Italy",
+    "type": "Amphitheatre",
+    "description": "An oval amphitheatre in the centre of the city of Rome, Italy."
+  },
+  {
+    "id": "h-004",
+    "name": "Great Wall of China",
+    "location": "China",
+    "type": "Fortification",
+    "description": "A series of fortifications that were built across the historical northern borders of ancient Chinese states."
+  },
+  {
+    "id": "h-005",
+    "name": "Petra",
+    "location": "Jordan",
+    "type": "Archaeological Site",
+    "description": "A historical and archaeological city in southern Jordan."
+  }
+]
