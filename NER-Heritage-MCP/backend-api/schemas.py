@@ -43,3 +43,39 @@ class Token(BaseModel):
 
 class TokenData(BaseModel):
     username: Optional[str] = None
+
+class MessageBase(BaseModel):
+    content: str
+    receiver_id: int
+    commission_id: Optional[int] = None
+
+class MessageCreate(MessageBase):
+    pass
+
+class Message(MessageBase):
+    id: int
+    sender_id: int
+    timestamp: datetime
+    is_read: bool
+
+    class Config:
+        from_attributes = True
+
+class CommissionBase(BaseModel):
+    title: str
+    description: str
+    budget: Optional[str] = None
+    artisan_id: int
+
+class CommissionCreate(CommissionBase):
+    pass
+
+class Commission(CommissionBase):
+    id: int
+    requester_id: int
+    status: str
+    created_at: datetime
+    messages: List[Message] = []
+
+    class Config:
+        from_attributes = True
