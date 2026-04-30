@@ -4,17 +4,10 @@ import React from 'react';
 import { Heart, MessageCircle, Repeat2, Share, CheckCircle2 } from 'lucide-react';
 import { ExperienceCarousel } from '../ui/ExperienceCarousel';
 
+import { Artisan } from '@/context/RecommendationEngineContext';
+
 interface ArtisanProfileCardProps {
-  artisan: {
-    id: string;
-    name: string;
-    category: string;
-    location: string;
-    bio: string;
-    images: string[];
-    isVerified: boolean;
-    rating: number;
-  };
+  artisan: Artisan;
 }
 
 export const ArtisanProfileCard = ({ artisan }: ArtisanProfileCardProps) => {
