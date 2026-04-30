@@ -1,8 +1,8 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Image from 'next/image';
-import { Heart, MessageCircle, Repeat2, Share, CheckCircle2 } from 'lucide-react';
+import { Heart, MessageCircle, Share, CheckCircle2, ShieldAlert, Sparkles, X } from 'lucide-react';
 import { ExperienceCarousel } from '../ui/ExperienceCarousel';
 
 import { Artisan } from '@/context/RecommendationEngineContext';
@@ -12,6 +12,55 @@ interface ArtisanProfileCardProps {
 }
 
 export const ArtisanProfileCard = ({ artisan }: ArtisanProfileCardProps) => {
+  const [isArchived, setIsArchived] = useState(false);
+  const [hasDeployedInterest, setHasDeployedInterest] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleGesture = async (action: 'SWIPE_RIGHT' | 'SWIPE_LEFT') => {
+    setIsLoading(true);
+    try {
+      const response = await fetch('/api/mcp/swipe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          user_id: 'user_42',
+          target_id: artisan.id,
+          action: action,
+          category: artisan.type === 'artisan' ? 'Handloom & Textile' : 'Cultural Heritage'
+        })
+      });
+      
+      const data = await response.json();
+      console.log('MCP Engine Response:', data);
+
+      if (action === 'SWIPE_RIGHT') {
+        setHasDeployedInterest(true);
+      } else {
+        setIsArchived(true);
+      }
+    } catch (error) {
+      console.error('Failed to communicate with MCP engine', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  if (isArchived) {
+    return (
+      <div className="relative grid grid-cols-[70px_1fr] group mb-4 opacity-50">
+        <div className="flex flex-col items-center relative">
+          <div className="w-12 h-12 rounded-full border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-900 flex items-center justify-center">
+            <ShieldAlert size={20} className="text-slate-400" />
+          </div>
+          <div className="absolute left-[34.5px] top-[48px] bottom-0 w-[1px] bg-spine-line"></div>
+        </div>
+        <div className="pb-8 pr-4 flex items-center">
+          <p className="text-sm font-mono text-slate-500 uppercase tracking-widest">Target Archived</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="relative grid grid-cols-[70px_1fr] group">
       {/* The Spine Column */}
@@ -53,21 +102,34 @@ export const ArtisanProfileCard = ({ artisan }: ArtisanProfileCardProps) => {
           <ExperienceCarousel images={artisan.images} />
         </div>
 
-        {/* Interaction Matrix (Action Bar) */}
-        <div className="flex items-center justify-between max-w-[320px] text-slate-400">
-          <button className="flex items-center gap-2 group/icon hover:text-tactical-green transition-colors">
-            <Heart size={18} className="group-hover/icon:fill-tactical-green/20" />
-            <span className="text-xs font-medium">24</span>
+        {/* Tactical Action Bar */}
+        <div className="flex items-center gap-3">
+          <button 
+            onClick={() => handleGesture('SWIPE_RIGHT')}
+            disabled={hasDeployedInterest || isLoading}
+            className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-xl border transition-all ${
+              hasDeployedInterest 
+                ? 'bg-tactical-emerald/10 border-tactical-emerald/30 text-tactical-emerald' 
+                : 'bg-background border-slate-200 dark:border-slate-800 text-foreground hover:bg-slate-50 dark:hover:bg-slate-800/50'
+            }`}
+          >
+            {hasDeployedInterest ? (
+              <><Sparkles size={16} /> <span className="text-sm font-semibold tracking-wide">Interest Deployed</span></>
+            ) : (
+              <><Heart size={16} /> <span className="text-sm font-semibold">Deploy Interest</span></>
+            )}
           </button>
-          <button className="flex items-center gap-2 group/icon hover:text-tactical-green transition-colors">
-            <MessageCircle size={18} />
-            <span className="text-xs font-medium">12</span>
+          
+          <button 
+            onClick={() => handleGesture('SWIPE_LEFT')}
+            disabled={isLoading}
+            className="w-10 h-10 flex items-center justify-center rounded-xl border border-slate-200 dark:border-slate-800 text-slate-400 hover:text-red-500 hover:border-red-500/30 hover:bg-red-500/5 transition-all"
+            title="Archive Target"
+          >
+            <X size={20} />
           </button>
-          <button className="flex items-center gap-2 group/icon hover:text-tactical-green transition-colors">
-            <Repeat2 size={18} />
-            <span className="text-xs font-medium">6</span>
-          </button>
-          <button className="flex items-center gap-2 group/icon hover:text-tactical-green transition-colors">
+
+          <button className="w-10 h-10 flex items-center justify-center rounded-xl border border-slate-200 dark:border-slate-800 text-slate-400 hover:text-tactical-blue transition-all">
             <Share size={18} />
           </button>
         </div>

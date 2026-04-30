@@ -25,12 +25,16 @@ export const LiveWeavingHUD = ({ artisanId = 'a1' }: { artisanId?: string }) => 
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
-    // Simulated WebSocket connection
-    // In a real app, use: const socket = new WebSocket(`ws://localhost:8001/ws/weaving/${artisanId}`);
     const socketUrl = `ws://localhost:8001/ws/weaving/${artisanId}`;
     let socket: WebSocket | null = null;
+    let reconnectTimeout: NodeJS.Timeout | null = null;
 
     const connect = () => {
+      // Prevent multiple connections
+      if (socket && (socket.readyState === WebSocket.OPEN || socket.readyState === WebSocket.CONNECTING)) {
+        return;
+      }
+
       try {
         socket = new WebSocket(socketUrl);
 
@@ -40,29 +44,47 @@ export const LiveWeavingHUD = ({ artisanId = 'a1' }: { artisanId?: string }) => 
         };
 
         socket.onmessage = (event) => {
-          const payload = JSON.parse(event.data);
-          setData(payload);
+          try {
+            const payload = JSON.parse(event.data);
+            setData(payload);
+          } catch (e) {
+            console.error('HUD: Error parsing payload', e);
+          }
         };
 
-        socket.onclose = () => {
+        socket.onclose = (event) => {
           setIsConnected(false);
-          console.log('HUD: Connection closed. Ensure backend (websocket_mock.py) is running on port 8001.');
-          setTimeout(connect, 5000);
+          // Only retry if not intentional closure
+          if (!event.wasClean) {
+            console.log('HUD: Connection lost. Retrying in 5s...');
+            reconnectTimeout = setTimeout(connect, 5000);
+          } else {
+            console.log('HUD: Connection closed cleanly');
+          }
         };
 
-        socket.onerror = () => {
-          // console.error handled in onclose retry logic
+        socket.onerror = (err) => {
+          console.warn('HUD: WebSocket error', err);
           socket?.close();
         };
       } catch (err) {
         console.error('HUD: Connection failed', err);
+        reconnectTimeout = setTimeout(connect, 5000);
       }
     };
 
     connect();
 
     return () => {
-      socket?.close();
+      console.log('HUD: Cleaning up connection...');
+      if (reconnectTimeout) clearTimeout(reconnectTimeout);
+      if (socket) {
+        // Prevent close() before established error
+        if (socket.readyState === WebSocket.OPEN || socket.readyState === WebSocket.CONNECTING) {
+          socket.onclose = null; // Prevent the onclose retry from firing
+          socket.close();
+        }
+      }
     };
   }, [artisanId]);
 
@@ -86,21 +108,12 @@ export const LiveWeavingHUD = ({ artisanId = 'a1' }: { artisanId?: string }) => 
       {/* Video Background */}
       <video
         ref={videoRef}
-        src="https://player.vimeo.com/external/494252666.sd.mp4?s=72fa13702a0a3a31bf575df86b7618a3d341052&profile_id=164" 
+        src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" 
         className="w-full h-full object-cover opacity-60 grayscale-[0.2]"
         loop
         muted
         playsInline
         autoPlay
-        onError={(e) => {
-          console.warn("HUD: Primary video link expired or failed, switching to stable fallback video.");
-          const video = e.currentTarget;
-          if (video.src !== "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4") {
-            video.src = "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4";
-            video.load();
-            video.play().catch(() => {});
-          }
-        }}
       />
 
       {/* HUD OVERLAY LAYER */}

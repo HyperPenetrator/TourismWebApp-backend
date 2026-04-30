@@ -1,223 +1,282 @@
-import React, { useState, useRef } from 'react';
-import { UploadCloud, X, Plus } from 'lucide-react';
+'use client';
+
+import React, { useState, useRef, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { UploadCloud, X, Tag as TagIcon, IndianRupee, Image as ImageIcon } from 'lucide-react';
 
 interface MarketplaceUploadModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onUpload: (formData: FormData) => Promise<void>;
+  onSubmit: (data: { description: string; price: number; tags: string[]; files: File[] }) => void;
 }
 
-export const MarketplaceUploadModal: React.FC<MarketplaceUploadModalProps> = ({
-  isOpen,
-  onClose,
-  onUpload
-}) => {
-  const [description, setDescription] = useState('');
-  const [price, setPrice] = useState('');
-  const [tagInput, setTagInput] = useState('');
-  const [tags, setTags] = useState<string[]>([]);
-  const [file, setFile] = useState<File | null>(null);
+export const MarketplaceUploadModal: React.FC<MarketplaceUploadModalProps> = ({ isOpen, onClose, onSubmit }) => {
   const [isDragging, setIsDragging] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
-  
+  const [files, setFiles] = useState<File[]>([]);
+  const [description, setDescription] = useState('');
+  const [price, setPrice] = useState<string>('');
+  const [tags, setTags] = useState<string[]>([]);
+  const [currentTag, setCurrentTag] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  if (!isOpen) return null;
-
-  const handleDragOver = (e: React.DragEvent) => {
+  const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(true);
-  };
+  }, []);
 
-  const handleDragLeave = (e: React.DragEvent) => {
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(false);
-  };
+  }, []);
 
-  const handleDrop = (e: React.DragEvent) => {
+  const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(false);
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      handleFileSelection(e.dataTransfer.files[0]);
+      const newFiles = Array.from(e.dataTransfer.files).filter((f) => f.type.startsWith('image/'));
+      setFiles((prev) => [...prev, ...newFiles]);
+    }
+  }, []);
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const newFiles = Array.from(e.target.files).filter((f) => f.type.startsWith('image/'));
+      setFiles((prev) => [...prev, ...newFiles]);
     }
   };
 
-  const handleFileSelection = (selectedFile: File) => {
-    const validTypes = ['image/jpeg', 'image/png', 'image/webp'];
-    if (validTypes.includes(selectedFile.type)) {
-      setFile(selectedFile);
-    } else {
-      alert("Unsupported file type. Please use JPEG, PNG, or WebP.");
-    }
+  const removeFile = (index: number) => {
+    setFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
   const handleTagKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter' && tagInput.trim() !== '') {
+    if (e.key === 'Enter' && currentTag.trim()) {
       e.preventDefault();
-      if (!tags.includes(tagInput.trim())) {
-        setTags([...tags, tagInput.trim()]);
+      if (!tags.includes(currentTag.trim())) {
+        setTags([...tags, currentTag.trim()]);
       }
-      setTagInput('');
+      setCurrentTag('');
     }
   };
 
   const removeTag = (tagToRemove: string) => {
-    setTags(tags.filter(t => t !== tagToRemove));
+    setTags(tags.filter((t) => t !== tagToRemove));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!file || !description || !price) return;
-
-    setIsUploading(true);
-    const formData = new FormData();
-    formData.append('image', file);
-    formData.append('description', description);
-    formData.append('price', price);
-    formData.append('tags', tags.join(','));
-
-    try {
-      await onUpload(formData);
-      // Reset form
-      setFile(null);
-      setDescription('');
-      setPrice('');
-      setTags([]);
-      onClose();
-    } catch (err) {
-      console.error('Upload failed', err);
-      alert('Upload failed. Please try again.');
-    } finally {
-      setIsUploading(false);
-    }
+    onSubmit({
+      description,
+      price: parseFloat(price) || 0,
+      tags,
+      files,
+    });
+    // Reset form
+    setFiles([]);
+    setDescription('');
+    setPrice('');
+    setTags([]);
+    setCurrentTag('');
+    onClose();
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      {/* Backdrop */}
-      <div 
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-        onClick={onClose}
-      />
-      
-      {/* Glassmorphic Modal */}
-      <div className="relative w-full max-w-lg overflow-hidden rounded-2xl border border-white/20 bg-white/10 p-6 shadow-2xl backdrop-blur-xl animate-in fade-in zoom-in-95 duration-200">
-        
-        <button 
-          onClick={onClose}
-          className="absolute right-4 top-4 rounded-full p-1 text-white/50 hover:bg-white/10 hover:text-white transition-colors"
-        >
-          <X className="h-5 w-5" />
-        </button>
+    <AnimatePresence>
+      {isOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4 pt-12 pb-4 sm:p-0">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm"
+            onClick={onClose}
+          />
 
-        <h2 className="mb-6 text-2xl font-bold tracking-tight text-white">Upload to Marketplace</h2>
-
-        <form onSubmit={handleSubmit} className="space-y-6">
-          
-          {/* Drag & Drop Zone */}
-          <div 
-            className={`relative flex h-40 cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed transition-all ${
-              isDragging 
-                ? 'border-emerald-400 bg-emerald-400/10' 
-                : 'border-white/20 bg-white/5 hover:bg-white/10'
-            }`}
-            onDragOver={handleDragOver}
-            onDragLeave={handleDragLeave}
-            onDrop={handleDrop}
-            onClick={() => fileInputRef.current?.click()}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+            transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+            className="relative w-full max-w-2xl overflow-hidden rounded-2xl bg-[#0F172A]/80 border border-white/10 shadow-2xl backdrop-blur-2xl"
           >
-            <input 
-              type="file" 
-              ref={fileInputRef}
-              className="hidden" 
-              accept="image/jpeg, image/png, image/webp"
-              onChange={(e) => e.target.files && handleFileSelection(e.target.files[0])}
-            />
-            
-            {file ? (
-              <div className="text-center text-emerald-300">
-                <p className="font-medium">{file.name}</p>
-                <p className="text-sm opacity-70">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
+            {/* Header */}
+            <div className="flex items-center justify-between border-b border-white/10 px-6 py-4 bg-white/[0.02]">
+              <div>
+                <h2 className="text-lg font-medium text-white">Upload New Asset</h2>
+                <p className="text-xs text-white/40 mt-1 uppercase tracking-wider">Marketplace Integration Module</p>
               </div>
-            ) : (
-              <div className="flex flex-col items-center text-white/60">
-                <UploadCloud className="mb-2 h-8 w-8" />
-                <p className="text-sm font-medium">Drag & Drop image here</p>
-                <p className="text-xs opacity-70">JPEG, PNG, WebP</p>
-              </div>
-            )}
-          </div>
-
-          <div className="space-y-4">
-            <div>
-              <label className="mb-1 block text-sm font-medium text-white/80">Description</label>
-              <textarea 
-                required
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                className="w-full rounded-xl border border-white/10 bg-black/20 p-3 text-white placeholder-white/30 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all resize-none h-24"
-                placeholder="Describe your artisan creation..."
-              />
+              <button
+                onClick={onClose}
+                className="rounded-full p-2 text-white/50 hover:bg-white/10 hover:text-white transition-colors"
+              >
+                <X className="h-5 w-5" />
+              </button>
             </div>
 
-            <div>
-              <label className="mb-1 block text-sm font-medium text-white/80">Price (USD)</label>
-              <input 
-                type="number" 
-                required
-                min="0"
-                step="0.01"
-                value={price}
-                onChange={(e) => setPrice(e.target.value)}
-                className="w-full rounded-xl border border-white/10 bg-black/20 p-3 text-white placeholder-white/30 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all"
-                placeholder="e.g. 45.00"
-              />
-            </div>
-
-            <div>
-              <label className="mb-1 block text-sm font-medium text-white/80">Tags</label>
-              <div className="flex w-full flex-wrap items-center gap-2 rounded-xl border border-white/10 bg-black/20 p-2 focus-within:border-emerald-500 focus-within:ring-1 focus-within:ring-emerald-500 transition-all">
-                {tags.map((tag) => (
-                  <span 
-                    key={tag} 
-                    className="flex items-center gap-1 rounded-full bg-emerald-500/20 px-3 py-1 text-xs font-medium text-emerald-200 border border-emerald-500/30"
+            {/* Form Content */}
+            <div className="p-6 overflow-y-auto max-h-[80vh] custom-scrollbar">
+              <form onSubmit={handleSubmit} className="space-y-6">
+                
+                {/* Drag & Drop Zone */}
+                <div>
+                  <label className="block text-sm font-medium text-white/70 mb-2">Media Assets</label>
+                  <div
+                    onDragOver={handleDragOver}
+                    onDragLeave={handleDragLeave}
+                    onDrop={handleDrop}
+                    onClick={() => fileInputRef.current?.click()}
+                    className={`relative flex flex-col items-center justify-center rounded-xl border-2 border-dashed p-8 text-center cursor-pointer transition-all duration-300 ${
+                      isDragging 
+                        ? 'border-emerald-500 bg-emerald-500/10' 
+                        : 'border-white/20 bg-white/5 hover:border-white/40 hover:bg-white/10'
+                    }`}
                   >
-                    {tag}
-                    <button 
-                      type="button" 
-                      onClick={() => removeTag(tag)}
-                      className="text-emerald-200/60 hover:text-emerald-200"
-                    >
-                      <X className="h-3 w-3" />
-                    </button>
-                  </span>
-                ))}
-                <input 
-                  type="text" 
-                  value={tagInput}
-                  onChange={(e) => setTagInput(e.target.value)}
-                  onKeyDown={handleTagKeyDown}
-                  className="flex-1 bg-transparent p-1 text-sm text-white placeholder-white/30 outline-none min-w-[120px]"
-                  placeholder="Type a tag & press Enter"
-                />
-              </div>
-            </div>
-          </div>
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      className="hidden"
+                      multiple
+                      accept="image/*"
+                      onChange={handleFileSelect}
+                    />
+                    <UploadCloud className={`h-10 w-10 mb-3 ${isDragging ? 'text-emerald-400' : 'text-white/40'}`} />
+                    <p className="text-sm text-white/80">
+                      <span className="font-semibold text-emerald-400">Click to upload</span> or drag and drop
+                    </p>
+                    <p className="text-xs text-white/40 mt-1">SVG, PNG, JPG or GIF (max. 10MB)</p>
+                  </div>
 
-          <button 
-            type="submit" 
-            disabled={!file || isUploading}
-            className="w-full flex items-center justify-center gap-2 rounded-xl bg-emerald-500 px-4 py-3 font-semibold text-emerald-950 transition-all hover:bg-emerald-400 disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_0_20px_rgba(16,185,129,0.3)] hover:shadow-[0_0_30px_rgba(16,185,129,0.5)]"
-          >
-            {isUploading ? (
-              <div className="h-5 w-5 animate-spin rounded-full border-2 border-emerald-950 border-t-transparent" />
-            ) : (
-              <Plus className="h-5 w-5" />
-            )}
-            {isUploading ? 'Indexing...' : 'Upload to Marketplace'}
-          </button>
-        </form>
-      </div>
-    </div>
+                  {/* File Previews */}
+                  {files.length > 0 && (
+                    <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+                      <AnimatePresence>
+                        {files.map((file, idx) => (
+                          <motion.div
+                            key={`${file.name}-${idx}`}
+                            initial={{ opacity: 0, scale: 0.8 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.8 }}
+                            className="relative group aspect-square rounded-lg border border-white/10 overflow-hidden bg-black/50"
+                          >
+                            <div className="absolute inset-0 flex items-center justify-center">
+                                <ImageIcon className="h-8 w-8 text-white/20" />
+                            </div>
+                            <div className="absolute inset-x-0 bottom-0 bg-black/60 p-1 backdrop-blur-md">
+                              <p className="truncate text-[10px] text-white/70 text-center">{file.name}</p>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={(e) => { e.stopPropagation(); removeFile(idx); }}
+                              className="absolute top-1 right-1 rounded-full bg-black/60 p-1 text-white hover:bg-red-500/80 hover:text-white transition-colors backdrop-blur-md opacity-0 group-hover:opacity-100"
+                            >
+                              <X className="h-3 w-3" />
+                            </button>
+                          </motion.div>
+                        ))}
+                      </AnimatePresence>
+                    </div>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Price */}
+                  <div>
+                    <label className="block text-sm font-medium text-white/70 mb-2">Listing Price</label>
+                    <div className="relative">
+                      <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                        <IndianRupee className="h-4 w-4 text-emerald-400/70" />
+                      </div>
+                      <input
+                        type="number"
+                        required
+                        value={price}
+                        onChange={(e) => setPrice(e.target.value)}
+                        className="block w-full rounded-lg border border-white/10 bg-black/20 py-2.5 pl-10 pr-3 text-white placeholder:text-white/30 focus:border-emerald-500/50 focus:outline-none focus:ring-1 focus:ring-emerald-500/50 transition-all font-mono"
+                        placeholder="0.00"
+                        min="0"
+                        step="0.01"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Tags */}
+                  <div>
+                    <label className="block text-sm font-medium text-white/70 mb-2">Tags</label>
+                    <div className="relative">
+                      <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                        <TagIcon className="h-4 w-4 text-white/40" />
+                      </div>
+                      <input
+                        type="text"
+                        value={currentTag}
+                        onChange={(e) => setCurrentTag(e.target.value)}
+                        onKeyDown={handleTagKeyDown}
+                        className="block w-full rounded-lg border border-white/10 bg-black/20 py-2.5 pl-10 pr-3 text-white placeholder:text-white/30 focus:border-white/30 focus:outline-none focus:ring-1 focus:ring-white/30 transition-all"
+                        placeholder="Type and press Enter..."
+                      />
+                    </div>
+                    {/* Tags Container */}
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      <AnimatePresence>
+                        {tags.map((tag) => (
+                          <motion.div
+                            key={tag}
+                            initial={{ opacity: 0, scale: 0.8 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.8 }}
+                            className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-300 backdrop-blur-sm"
+                          >
+                            {tag}
+                            <button
+                              type="button"
+                              onClick={() => removeTag(tag)}
+                              className="text-emerald-400/60 hover:text-emerald-300 focus:outline-none"
+                            >
+                              <X className="h-3 w-3" />
+                            </button>
+                          </motion.div>
+                        ))}
+                      </AnimatePresence>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Description */}
+                <div>
+                  <label className="block text-sm font-medium text-white/70 mb-2">Description</label>
+                  <textarea
+                    required
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    rows={4}
+                    className="block w-full rounded-lg border border-white/10 bg-black/20 p-3 text-white placeholder:text-white/30 focus:border-white/30 focus:outline-none focus:ring-1 focus:ring-white/30 transition-all resize-none"
+                    placeholder="Provide details about the material, origin, and creation process..."
+                  />
+                </div>
+
+                {/* Footer / Actions */}
+                <div className="mt-8 flex items-center justify-end gap-3 pt-6 border-t border-white/10">
+                  <button
+                    type="button"
+                    onClick={onClose}
+                    className="rounded-lg px-4 py-2 text-sm font-medium text-white/70 hover:bg-white/5 hover:text-white transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={!description || !price || files.length === 0}
+                    className="group relative overflow-hidden rounded-lg bg-emerald-500 px-6 py-2 text-sm font-semibold text-black transition-all hover:bg-emerald-400 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <span className="relative z-10">Upload Asset</span>
+                    <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out" />
+                  </button>
+                </div>
+              </form>
+            </div>
+          </motion.div>
+        </div>
+      )}
+    </AnimatePresence>
   );
 };
