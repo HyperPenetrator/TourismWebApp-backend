@@ -21,7 +21,7 @@ export const HeaderSearch = ({ query, onQueryChange }: HeaderSearchProps) => {
           value={query}
           onChange={(e) => onQueryChange(e.target.value)}
           placeholder="Search Discovery..."
-          className="w-full bg-[#F1F5F9]/50 border border-slate-200 rounded-xl py-2.5 pl-12 pr-4 text-[15px] focus:outline-none focus:bg-white focus:border-tactical-emerald/30 transition-all placeholder:text-slate-400 text-slate-900"
+          className="w-full bg-slate-100/50 dark:bg-slate-800/50 border border-slate-200 dark:border-white/10 rounded-xl py-2.5 pl-12 pr-4 text-[15px] focus:outline-none focus:bg-white dark:focus:bg-slate-800 focus:border-tactical-emerald/30 transition-all placeholder:text-slate-400 text-foreground"
         />
       </div>
     </div>

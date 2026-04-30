@@ -24,8 +24,8 @@ export const DynamicFilterStrip = () => {
           onClick={() => setActiveCategory(null)}
           className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-semibold transition-all border ${
             activeCategory === null
-              ? 'bg-slate-900 border-slate-900 text-white'
-              : 'bg-slate-50 border-slate-100 text-slate-500 hover:border-slate-200'
+              ? 'bg-tactical-emerald border-tactical-emerald text-white'
+              : 'bg-white/50 dark:bg-slate-800/50 border-black/5 dark:border-white/5 text-slate-500 hover:border-slate-200 dark:hover:border-white/10'
           }`}
         >
           <Zap size={12} className={activeCategory === null ? 'text-white' : 'text-slate-400'} />
@@ -38,8 +38,8 @@ export const DynamicFilterStrip = () => {
             onClick={() => setActiveCategory(cat.value)}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-semibold transition-all border ${
               activeCategory === cat.value
-                ? 'bg-slate-900 border-slate-900 text-white'
-                : 'bg-slate-50 border-slate-100 text-slate-500 hover:border-slate-200'
+                ? 'bg-tactical-emerald border-tactical-emerald text-white shadow-[0_0_15px_rgba(16,185,129,0.2)]'
+                : 'bg-white/50 dark:bg-slate-800/50 border-black/5 dark:border-white/5 text-slate-500 hover:border-slate-200 dark:hover:border-white/10'
             }`}
           >
             <div className={activeCategory === cat.value ? 'text-white' : 'text-slate-400'}>

@@ -72,7 +72,9 @@ export const LiveWeavingHUD = ({ artisanId = 'a1' }: { artisanId?: string }) => 
       // Explicitly mute to satisfy browser autoplay policies
       videoRef.current.muted = true;
       videoRef.current.play().catch((error) => {
-        console.warn('HUD: Autoplay blocked or failed:', error);
+        if (error.name !== 'NotSupportedError') {
+          console.warn('HUD: Autoplay blocked or failed:', error);
+        }
       });
     }
   }, []);
@@ -84,11 +86,21 @@ export const LiveWeavingHUD = ({ artisanId = 'a1' }: { artisanId?: string }) => 
       {/* Video Background */}
       <video
         ref={videoRef}
-        src="https://assets.mixkit.co/videos/preview/mixkit-weaving-on-a-loom-1234-large.mp4"
+        src="https://player.vimeo.com/external/494252666.sd.mp4?s=72fa13702a0a3a31bf575df86b7618a3d341052&profile_id=164" 
         className="w-full h-full object-cover opacity-60 grayscale-[0.2]"
         loop
         muted
         playsInline
+        autoPlay
+        onError={(e) => {
+          console.warn("HUD: Primary video link expired or failed, switching to stable fallback video.");
+          const video = e.currentTarget;
+          if (video.src !== "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4") {
+            video.src = "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4";
+            video.load();
+            video.play().catch(() => {});
+          }
+        }}
       />
 
       {/* HUD OVERLAY LAYER */}

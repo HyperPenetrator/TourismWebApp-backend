@@ -54,7 +54,13 @@ export default function DeepScanner() {
       <div className="hud-element glass-panel aspect-square w-full rounded-lg overflow-hidden border-tactical-emerald/20 flex flex-col items-center justify-center relative group">
         {image ? (
           <div className="relative w-full h-full">
-            <Image src={image} alt="Handloom Sample" fill className="object-cover" />
+            <Image 
+              src={image} 
+              alt="Handloom Sample" 
+              fill 
+              sizes="(max-width: 448px) 100vw, 448px"
+              className="object-cover" 
+            />
             {isScanning && <div className="scan-line" />}
             {!isScanning && result && (
               <div className="absolute inset-0 bg-tactical-emerald/10 animate-pulse pointer-events-none" />

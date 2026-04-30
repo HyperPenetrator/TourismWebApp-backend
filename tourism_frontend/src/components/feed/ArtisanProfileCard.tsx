@@ -21,6 +21,7 @@ export const ArtisanProfileCard = ({ artisan }: ArtisanProfileCardProps) => {
             src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${artisan.name}`} 
             alt={artisan.name} 
             fill
+            sizes="48px"
             className="object-cover" 
           />
         </div>

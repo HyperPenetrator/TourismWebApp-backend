@@ -68,13 +68,13 @@ const NavItem = ({ icon, label, active = false, onClick, isAction = false }: Nav
     <div className={`transition-all duration-200 ${
       isAction 
         ? '' 
-        : active ? 'text-tactical-emerald' : 'text-slate-400 group-hover:text-slate-600'
+        : active ? 'text-tactical-emerald' : 'text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-200'
     }`}>
       {icon}
     </div>
     
     <span className={`text-[10px] font-semibold mt-1 transition-all duration-200 ${
-      active ? 'text-tactical-emerald' : 'text-slate-400 group-hover:text-slate-600'
+      active ? 'text-tactical-emerald' : 'text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-200'
     }`}>
       {label}
     </span>

@@ -41,6 +41,7 @@ export const ExperienceCarousel = ({
                 src={image} 
                 alt={`Slide ${idx + 1}`} 
                 fill
+                sizes="(max-width: 768px) 100vw, 700px"
                 className="object-cover" 
               />
             </div>

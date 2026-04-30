@@ -1,19 +1,25 @@
-# spot@NE | Regional Artisans & Experiences
+# Spot@NE | Frontend Application
 
-Digital spotlight on authentic regional artisans and curated cultural experiences across Northeast India.
+This is the primary user interface for the Spot@NE platform, built with Next.js and Tailwind CSS.
 
-## Tech Stack
-- **Framework**: Next.js (App Router)
-- **Styling**: Tailwind CSS (v4)
-- **Theme**: Antigravity (Dark Mode / Glassmorphism)
-- **Icons**: Lucide React
+## 🚀 Quick Start
 
-## Getting Started
+1. Install dependencies:
+   ```bash
+   npm install
+   ```
+2. Start the development server:
+   ```bash
+   npm run dev
+   ```
 
-First, run the development server:
+## 🛠️ Key Components
+- **`LiveWeavingHUD`**: Real-time artisan metrics overlay.
+- **`DeepScanner`**: Pattern recognition UI.
+- **`ArtisanProfileCard`**: Immersive profile views.
 
-```bash
-npm run dev
-```
-
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🔗 Project Documentation
+For the full project overview, backend setup, and contribution guidelines, please refer to the root documentation:
+- [Root README](../README.md)
+- [Feature Roadmap](../FEATURES.md)
+- [Contributing Guidelines](../CONTRIBUTING.md)

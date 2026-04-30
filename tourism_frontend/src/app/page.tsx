@@ -30,8 +30,8 @@ export default function Home() {
       
       {/* Background Ambience */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] bg-emerald-900/10 blur-[120px] rounded-full"></div>
-        <div className="absolute top-[20%] -right-[10%] w-[30%] h-[50%] bg-emerald-800/5 blur-[100px] rounded-full"></div>
+        <div className="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] bg-emerald-900/10 dark:bg-emerald-500/5 blur-[120px] rounded-full"></div>
+        <div className="absolute top-[20%] -right-[10%] w-[30%] h-[50%] bg-emerald-800/5 dark:bg-emerald-400/5 blur-[100px] rounded-full"></div>
       </div>
 
       {/* Main Content Area */}
