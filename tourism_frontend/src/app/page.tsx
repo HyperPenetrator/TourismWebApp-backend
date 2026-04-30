@@ -8,7 +8,9 @@ import { BottomNav } from '@/components/layout/BottomNav';
 import { ArtisanProfileCard } from '@/components/feed/ArtisanProfileCard';
 import { ExperienceCard } from '@/components/feed/ExperienceCard';
 import { ProfileView } from '@/components/profile/ProfileView';
-import { useRecommendation } from '@/context/RecommendationEngineContext';
+import { LiveWeavingHUD } from '@/components/feed/LiveWeavingHUD';
+import DeepScanner from '@/components/feed/DeepScanner';
+import { useRecommendation, FeedItem, Artisan, Experience } from '@/context/RecommendationEngineContext';
 
 export default function Home() {
   const { recommendedItems, activeCategory } = useRecommendation();
@@ -25,23 +27,53 @@ export default function Home() {
     <main className="relative min-h-screen bg-background pb-32">
       <TopBar />
       
+      {/* Background Ambience (Merged from Deep Scan Branch) */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] bg-emerald-900/10 blur-[120px] rounded-full"></div>
+        <div className="absolute top-[20%] -right-[10%] w-[30%] h-[50%] bg-emerald-800/5 blur-[100px] rounded-full"></div>
+      </div>
+
       {/* Main Content Area */}
       <div className="max-w-screen-md mx-auto relative min-h-[60vh] px-4">
-        {activeZone === 'Home' && <DynamicFilterStrip />}
+        {activeZone === 'Home' && (
+          <>
+            <HeaderSearch />
+            <div className="mb-6 px-1">
+              <DeepScanner />
+            </div>
+            <DynamicFilterStrip />
+          </>
+        )}
         
         <div 
           key={activeZone}
           className="animate-in fade-in slide-in-from-bottom-8 duration-700 ease-out fill-mode-forwards"
         >
-          <div className="flex items-center justify-between px-2 pt-2 mb-8">
-            <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-tactical-emerald">
-              {activeZone === 'Home' 
-                ? (activeCategory ? `Filtered: ${activeCategory}` : 'Terra Command / Global Feed')
-                : `Zone: ${activeZone}`}
-            </h2>
-            <div className="flex gap-1">
-              <div className="w-1.5 h-1.5 rounded-full bg-tactical-emerald animate-pulse"></div>
-              <div className="w-1.5 h-1.5 rounded-full bg-slate-200"></div>
+          {activeZone === 'Home' && (
+            <div className="flex items-center justify-between px-2 pt-2 mb-8">
+              <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-tactical-emerald">
+                {activeCategory ? `Filtered: ${activeCategory}` : 'Terra Command / Global Feed'}
+              </h2>
+              <div className="flex gap-1">
+                <div className="w-1.5 h-1.5 rounded-full bg-tactical-emerald animate-pulse"></div>
+                <div className="w-1.5 h-1.5 rounded-full bg-slate-200"></div>
+              </div>
+            </div>
+          )}
+
+          {/* Featured Artisan Dossier / Live HUD Section (Merged) */}
+          {activeZone === 'Home' && (!activeCategory || activeCategory === 'Authentic Handloom') && (
+            <div className="px-1 animate-in fade-in slide-in-from-top-4 duration-1000 delay-300 mb-8">
+              <div className="flex flex-col gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="h-[1px] flex-1 bg-gradient-to-r from-transparent to-emerald-500/20"></div>
+                  <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-emerald-500/60">Featured Artisan Dossier</h3>
+                  <div className="h-[1px] flex-1 bg-gradient-to-l from-transparent to-emerald-500/20"></div>
+                </div>
+                <LiveWeavingHUD artisanId="a1" />
+              </div>
+            </div>
+          )}
             </div>
           </div>
 
