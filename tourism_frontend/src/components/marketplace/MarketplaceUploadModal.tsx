@@ -158,7 +158,6 @@ export const MarketplaceUploadModal: React.FC<MarketplaceUploadModalProps> = ({ 
                             exit={{ opacity: 0, scale: 0.8 }}
                             className="relative group aspect-square rounded-lg border border-white/10 overflow-hidden bg-black/50"
                           >
-                            {/* In a real app, we'd use URL.createObjectURL for preview. For brevity, a placeholder icon. */}
                             <div className="absolute inset-0 flex items-center justify-center">
                                 <ImageIcon className="h-8 w-8 text-white/20" />
                             </div>
