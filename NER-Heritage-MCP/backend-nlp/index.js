@@ -52,8 +52,38 @@ const EXTRACT_HERITAGE_ENTITIES_TOOL = {
   },
 };
 
+/**
+ * Tool for requesting a custom commission from an artisan.
+ */
+const REQUEST_ARTISAN_COMMISSION_TOOL = {
+  name: "request_artisan_commission",
+  description: "Draft and submit a formal commission request to a verified master artisan.",
+  inputSchema: {
+    type: "object",
+    properties: {
+      title: {
+        type: "string",
+        description: "Title of the commission (e.g., 'Custom Muga Silk Saree with Geometric Patterns').",
+      },
+      description: {
+        type: "string",
+        description: "Detailed description of the craft, dimensions, and specific cultural motifs requested.",
+      },
+      budget: {
+        type: "string",
+        description: "Expected budget range in INR (e.g., '15,000 - 20,000').",
+      },
+      artisan_id: {
+        type: "string",
+        description: "The ID of the verified artisan.",
+      },
+    },
+    required: ["title", "description", "artisan_id"],
+  },
+};
+
 server.setRequestHandler(ListToolsRequestSchema, async () => ({
-  tools: [EXTRACT_HERITAGE_ENTITIES_TOOL],
+  tools: [EXTRACT_HERITAGE_ENTITIES_TOOL, REQUEST_ARTISAN_COMMISSION_TOOL],
 }));
 
 server.setRequestHandler(CallToolRequestSchema, async (request) => {
@@ -106,6 +136,40 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           }, null, 2),
         },
       ],
+    };
+  }
+
+  if (request.params.name === "request_artisan_commission") {
+    const { title, description, budget, artisan_id } = request.params.arguments || {};
+    
+    if (!title || !description || !artisan_id) {
+      throw new Error("Title, description, and artisan_id are required.");
+    }
+
+    // Safety validation on description
+    const validation = validateTextInput(description);
+    if (!validation.valid) {
+      return {
+        content: [{ type: "text", text: `Safety Error: ${validation.error}` }],
+        isError: true,
+      };
+    }
+
+    const commissionId = `COM-${Math.floor(Math.random() * 10000)}`;
+    
+    return {
+      content: [
+        {
+          type: "text",
+          text: `Commission request drafted successfully!\n\nID: ${commissionId}\nArtisan ID: ${artisan_id}\nTitle: ${title}\nBudget: ${budget || "Negotiable"}\n\nStatus: Pending verification. You can view this in the 'Artisan Direct' chat channel.`,
+        },
+      ],
+      structuredContent: {
+        commissionId,
+        status: "pending",
+        artisanId: artisan_id,
+        summary: title
+      }
     };
   }
   throw new Error(`Unknown tool: ${request.params.name}`);

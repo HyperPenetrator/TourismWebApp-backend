@@ -60,6 +60,62 @@ def get_feed(db: Session = Depends(get_db)):
     posts = db.query(models.Post).order_by(models.Post.timestamp.desc()).all()
     return posts
 
+@app.post("/commissions", response_model=schemas.Commission)
+def create_commission(
+    commission: schemas.CommissionCreate,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    new_commission = models.Commission(
+        **commission.dict(),
+        requester_id=current_user.id
+    )
+    db.add(new_commission)
+    db.commit()
+    db.refresh(new_commission)
+    return new_commission
+
+@app.get("/commissions", response_model=List[schemas.Commission])
+def get_commissions(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    # Get commissions where user is requester or artisan
+    commissions = db.query(models.Commission).filter(
+        (models.Commission.requester_id == current_user.id) | 
+        (models.Commission.artisan_id == current_user.id)
+    ).all()
+    return commissions
+
+@app.post("/messages", response_model=schemas.Message)
+def send_message(
+    message: schemas.MessageCreate,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    new_message = models.Message(
+        **message.dict(),
+        sender_id=current_user.id
+    )
+    db.add(new_message)
+    db.commit()
+    db.refresh(new_message)
+    return new_message
+
+@app.get("/messages/{commission_id}", response_model=List[schemas.Message])
+def get_messages(
+    commission_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    # Verify user is part of the commission
+    commission = db.query(models.Commission).filter(models.Commission.id == commission_id).first()
+    if not commission or (commission.requester_id != current_user.id and commission.artisan_id != current_user.id):
+        raise HTTPException(status_code=403, detail="Not authorized to view these messages")
+    
+    messages = db.query(models.Message).filter(models.Message.commission_id == commission_id).all()
+    return messages
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
