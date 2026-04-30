@@ -1,190 +1,135 @@
-"""
-NER-Heritage-MCP | Spot@NE Platform
-Social Engagement WebSocket Manager — Room-Based Real-Time Broadcast
-
-A high-performance, asyncio-native WebSocket connection manager that organizes
-clients into "rooms" keyed by post_id. Handles:
-    - Room join/leave with automatic cleanup on disconnect
-    - Targeted broadcast to all subscribers of a specific post
-    - Global broadcast across all rooms (for system-wide events)
-    - Graceful error handling so one bad client never crashes the server
-
-Usage:
-    from utils.social_websocket import engagement_manager
-
-    # In your WebSocket endpoint handler:
-    await engagement_manager.connect(websocket, post_id)
-    try:
-        while True:
-            data = await websocket.receive_text()
-            ...
-    except WebSocketDisconnect:
-        engagement_manager.disconnect(websocket, post_id)
-
-    # From your MCP tool or any async context:
-    await engagement_manager.broadcast_to_post(post_id, event_payload)
-"""
-
+import logging
 import asyncio
 import json
-import logging
-from typing import Any
+import random
+from typing import Dict, Set, Optional
+from datetime import datetime, timezone
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from pydantic import BaseModel
+import uvicorn
 
-from fastapi import WebSocket
+# Configure logging
+logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
+logger = logging.getLogger("unified_ws")
 
-# ─── Logging ─────────────────────────────────────────────────────────────────
+app = FastAPI(title="Spot@NE Unified WebSocket Manager")
 
-log = logging.getLogger("spot-ne-social-ws")
+# ─── Social Engagement Logic ────────────────────────────────────────────────
 
-# ─── Connection Manager ──────────────────────────────────────────────────────
+class SocialManager:
+    def __init__(self):
+        self.active_connections: Dict[str, Set[WebSocket]] = {}
 
-
-class SocialWebSocketManager:
-    """
-    Manages WebSocket connections grouped by post_id rooms.
-
-    Thread-safe via asyncio (single event loop). Each room is a set of
-    WebSocket connections. Broadcasting iterates over the set and silently
-    removes any connection that has gone stale.
-    """
-
-    def __init__(self) -> None:
-        # { post_id: set(WebSocket, ...) }
-        self._rooms: dict[str, set[WebSocket]] = {}
-        # Reverse lookup for fast disconnect: { id(ws): post_id }
-        self._client_room_map: dict[int, str] = {}
-
-    # ── Connection Lifecycle ──────────────────────────────────────────────
-
-    async def connect(self, websocket: WebSocket, post_id: str) -> None:
-        """Accepts a WebSocket handshake and registers it in the post's room."""
+    async def connect(self, websocket: WebSocket, post_id: str):
         await websocket.accept()
+        if post_id not in self.active_connections:
+            self.active_connections[post_id] = set()
+        self.active_connections[post_id].add(websocket)
+        logger.info(f"[SOCIAL] Client connected to post '{post_id}'. Room size: {len(self.active_connections[post_id])}")
 
-        if post_id not in self._rooms:
-            self._rooms[post_id] = set()
-            log.info(f"Room created for post '{post_id}'.")
+    def disconnect(self, websocket: WebSocket, post_id: str):
+        if post_id in self.active_connections:
+            self.active_connections[post_id].discard(websocket)
+            if not self.active_connections[post_id]:
+                del self.active_connections[post_id]
 
-        self._rooms[post_id].add(websocket)
-        self._client_room_map[id(websocket)] = post_id
-        log.info(
-            f"Client joined room '{post_id}'. "
-            f"Room size: {len(self._rooms[post_id])}."
-        )
+    async def broadcast_to_post(self, post_id: str, message: dict):
+        if post_id in self.active_connections:
+            disconnected_sockets = set()
+            for connection in self.active_connections[post_id]:
+                try:
+                    await connection.send_json(message)
+                except Exception:
+                    disconnected_sockets.add(connection)
+            for dead_socket in disconnected_sockets:
+                self.disconnect(dead_socket, post_id)
 
-    def disconnect(self, websocket: WebSocket, post_id: str | None = None) -> None:
-        """
-        Removes a WebSocket from its room. If post_id is not provided,
-        uses the reverse lookup to find it. Cleans up empty rooms.
-        """
-        resolved_post_id = post_id or self._client_room_map.pop(id(websocket), None)
+social_manager = SocialManager()
 
-        if resolved_post_id is None:
-            log.warning("Attempted to disconnect unknown client; ignoring.")
-            return
+# ─── Weaving Telemetry Logic ────────────────────────────────────────────────
 
-        room = self._rooms.get(resolved_post_id)
-        if room is not None:
-            room.discard(websocket)
-            log.info(
-                f"Client left room '{resolved_post_id}'. "
-                f"Room size: {len(room)}."
-            )
-            # Garbage-collect empty rooms
-            if not room:
-                del self._rooms[resolved_post_id]
-                log.info(f"Room '{resolved_post_id}' is empty — removed.")
+ARTISAN_PROFILES = {
+    "a1": {"name": "Kiran Devi", "location": "Imphal, Manipur", "complexity_pool": ["Exceptional — Silk Brocade (Muga)", "High — Double Ikat"], "base_hours": 28, "speed": (35, 65)},
+    "a2": {"name": "Tenzing Namgyal", "location": "Gangtok, Sikkim", "complexity_pool": ["Medium — Bamboo Mat Interlace", "High — Structural Bamboo Weave"], "base_hours": 14, "speed": (20, 45)},
+}
+ALERT_POOL = ["Thread tension variance detected", "Loom speed approaching optimal cadence", "Pattern integrity above 98%"]
 
-        # Clean up reverse map entry (if not already popped above)
-        self._client_room_map.pop(id(websocket), None)
+class WeavingSession:
+    def __init__(self, artisan_id: str):
+        self.artisan_id = artisan_id
+        self.profile = ARTISAN_PROFILES.get(artisan_id, ARTISAN_PROFILES["a1"])
+        self.progress = random.uniform(10.0, 40.0)
+        self.complexity = random.choice(self.profile["complexity_pool"])
+        self.cooldown = 0
 
-    # ── Broadcasting ──────────────────────────────────────────────────────
+    def advance(self) -> dict:
+        self.progress = min(self.progress + random.uniform(0.2, 0.5), 100.0)
+        shuttle_speed = random.randint(*self.profile["speed"])
+        integrity = round(random.uniform(96.0, 99.9), 2)
+        remaining = round(self.profile["base_hours"] * ((100 - self.progress)/100), 1)
+        
+        alert = None
+        if self.cooldown <= 0 and random.random() < 0.2:
+            alert = random.choice(ALERT_POOL)
+            self.cooldown = 10
+        else:
+            self.cooldown = max(0, self.cooldown - 1)
 
-    async def broadcast_to_post(self, post_id: str, event: dict[str, Any]) -> int:
-        """
-        Sends a JSON event to every client subscribed to the given post_id room.
-
-        Returns the number of clients that successfully received the message.
-        Silently disconnects any client that raises during send.
-        """
-        room = self._rooms.get(post_id)
-        if not room:
-            log.debug(f"No active subscribers for post '{post_id}'; broadcast skipped.")
-            return 0
-
-        message = json.dumps(event)
-        stale_connections: list[WebSocket] = []
-        success_count = 0
-
-        # Fan out concurrently for performance
-        async def _safe_send(ws: WebSocket) -> bool:
-            try:
-                await ws.send_text(message)
-                return True
-            except Exception:
-                return False
-
-        results = await asyncio.gather(
-            *[_safe_send(ws) for ws in room],
-            return_exceptions=True,
-        )
-
-        # Pair results back with the websockets to identify stale ones
-        for ws, result in zip(list(room), results):
-            if result is True:
-                success_count += 1
-            else:
-                stale_connections.append(ws)
-
-        # Evict stale connections
-        for ws in stale_connections:
-            self.disconnect(ws, post_id)
-            log.warning(f"Evicted stale client from room '{post_id}'.")
-
-        log.info(
-            f"Broadcast to '{post_id}': {success_count}/{len(room) + len(stale_connections)} "
-            f"clients received the event."
-        )
-        return success_count
-
-    async def broadcast_global(self, event: dict[str, Any]) -> int:
-        """
-        Broadcasts an event to ALL connected clients across every room.
-        Useful for system-wide announcements.
-        Returns total number of successful deliveries.
-        """
-        total = 0
-        for post_id in list(self._rooms.keys()):
-            total += await self.broadcast_to_post(post_id, event)
-        return total
-
-    # ── Diagnostics ───────────────────────────────────────────────────────
-
-    @property
-    def active_rooms(self) -> int:
-        """Returns the count of rooms with at least one subscriber."""
-        return len(self._rooms)
-
-    @property
-    def total_connections(self) -> int:
-        """Returns the total number of active WebSocket connections."""
-        return sum(len(room) for room in self._rooms.values())
-
-    def room_size(self, post_id: str) -> int:
-        """Returns the number of subscribers in a specific room."""
-        return len(self._rooms.get(post_id, set()))
-
-    def status_snapshot(self) -> dict[str, Any]:
-        """Returns a diagnostic summary of all rooms."""
         return {
-            "active_rooms": self.active_rooms,
-            "total_connections": self.total_connections,
-            "rooms": {
-                pid: len(clients) for pid, clients in self._rooms.items()
+            "timestamp": int(datetime.now(timezone.utc).timestamp()),
+            "artisan_id": self.artisan_id,
+            "metrics": {
+                "weave_complexity": self.complexity,
+                "current_progress": f"{self.progress:.2f}%",
+                "shuttle_speed": f"{shuttle_speed} ppm",
+                "pattern_integrity": f"{integrity}%",
+                "estimated_completion_time": f"{remaining} hours",
+                "status": "Live broadcast active"
             },
+            "alerts": [alert] if alert else []
         }
 
+_weaving_sessions: Dict[str, WeavingSession] = {}
 
-# ─── Module-Level Singleton ──────────────────────────────────────────────────
-# Import this instance from anywhere in the application to share state.
+@app.websocket("/ws/weaving/{artisan_id}")
+async def weaving_websocket(websocket: WebSocket, artisan_id: str):
+    await websocket.accept()
+    if artisan_id not in _weaving_sessions:
+        _weaving_sessions[artisan_id] = WeavingSession(artisan_id)
+    
+    logger.info(f"[WEAVING] Client connected for artisan '{artisan_id}'")
+    try:
+        while True:
+            payload = _weaving_sessions[artisan_id].advance()
+            await websocket.send_json(payload)
+            await asyncio.sleep(2.0)
+    except WebSocketDisconnect:
+        logger.info(f"[WEAVING] Client disconnected for artisan '{artisan_id}'")
+    except Exception as e:
+        logger.error(f"[WEAVING] Error: {e}")
 
-engagement_manager = SocialWebSocketManager()
+# ─── Social Endpoints ───────────────────────────────────────────────────────
+
+@app.websocket("/ws/engagement/{post_id}")
+async def social_websocket(websocket: WebSocket, post_id: str):
+    await social_manager.connect(websocket, post_id)
+    try:
+        while True:
+            await websocket.receive_text()
+    except WebSocketDisconnect:
+        social_manager.disconnect(websocket, post_id)
+
+class BroadcastPayload(BaseModel):
+    post_id: str
+    event_type: str
+    data: dict
+
+@app.post("/api/internal/broadcast")
+async def trigger_broadcast(payload: BroadcastPayload):
+    message = {"type": payload.event_type, "data": payload.data}
+    await social_manager.broadcast_to_post(payload.post_id, message)
+    return {"status": "success"}
+
+if __name__ == "__main__":
+    logger.info("Starting Unified Spot@NE WebSocket Manager on port 8001...")
+    uvicorn.run("social_websocket:app", host="0.0.0.0", port=8001, reload=True)
