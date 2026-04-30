@@ -4,17 +4,10 @@ import React from 'react';
 import { Heart, MessageCircle, Repeat2, Share, Clock, Tag } from 'lucide-react';
 import { ExperienceCarousel } from '../ui/ExperienceCarousel';
 
+import { Experience } from '@/context/RecommendationEngineContext';
+
 interface ExperienceCardProps {
-  experience: {
-    id: string;
-    title: string;
-    category: string;
-    price: number;
-    duration: string;
-    images: string[];
-    description: string;
-    tags: string[];
-  };
+  experience: Experience;
 }
 
 export const ExperienceCard = ({ experience }: ExperienceCardProps) => {

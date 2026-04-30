@@ -22,7 +22,6 @@ interface HUDData {
 export const LiveWeavingHUD = ({ artisanId = 'a1' }: { artisanId?: string }) => {
   const [data, setData] = useState<HUDData | null>(null);
   const [isConnected, setIsConnected] = useState(false);
-  const [showScanner, setShowScanner] = useState(true);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
@@ -75,12 +74,7 @@ export const LiveWeavingHUD = ({ artisanId = 'a1' }: { artisanId?: string }) => 
       });
     }
     
-    // Pulse the scanner effect
-    const interval = setInterval(() => {
-      setShowScanner(prev => !prev);
-    }, 4000);
-    
-    return () => clearInterval(interval);
+    return () => {};
   }, []);
 
   const progressValue = data ? parseFloat(data.metrics.current_progress.replace('%', '')) : 0;
@@ -130,9 +124,6 @@ export const LiveWeavingHUD = ({ artisanId = 'a1' }: { artisanId?: string }) => 
 
         {/* Center Tactical Elements */}
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          {/* Scanning Line Effect */}
-          <div className={`absolute left-0 right-0 h-[2px] bg-emerald-500/20 blur-sm transition-all duration-1000 ease-in-out ${showScanner ? 'top-0' : 'top-full'}`} />
-          
           {/* Crosshair corners */}
           <div className="absolute top-1/4 left-1/4 w-8 h-8 border-t border-l border-emerald-500/20" />
           <div className="absolute top-1/4 right-1/4 w-8 h-8 border-t border-r border-emerald-500/20" />

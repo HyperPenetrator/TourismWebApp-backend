@@ -9,11 +9,12 @@ import { ArtisanProfileCard } from '@/components/feed/ArtisanProfileCard';
 import { ExperienceCard } from '@/components/feed/ExperienceCard';
 import { ProfileView } from '@/components/profile/ProfileView';
 import { LiveWeavingHUD } from '@/components/feed/LiveWeavingHUD';
+import { SwipeableFeed } from '@/components/feed/SwipeableFeed';
 import DeepScanner from '@/components/feed/DeepScanner';
 import { useRecommendation, FeedItem, Artisan, Experience } from '@/context/RecommendationEngineContext';
 
 export default function Home() {
-  const { recommendedItems, activeCategory } = useRecommendation();
+  const { recommendedItems, activeCategory, deployInterest, archiveTarget } = useRecommendation();
   const [activeZone, setActiveZone] = React.useState('Home');
   const [searchQuery, setSearchQuery] = React.useState('');
 
@@ -37,7 +38,7 @@ export default function Home() {
       <div className="max-w-screen-md mx-auto relative min-h-[60vh] px-4">
         {activeZone === 'Home' && (
           <>
-            <HeaderSearch />
+            <HeaderSearch query={searchQuery} onQueryChange={setSearchQuery} />
             <div className="mb-6 px-1">
               <DeepScanner />
             </div>
@@ -74,35 +75,21 @@ export default function Home() {
               </div>
             </div>
           )}
-            </div>
-          </div>
 
           <div className="flex flex-col">
             {activeZone === 'Home' ? (
-              recommendedItems.map((item, index) => {
-                if (item.type === 'artisan') {
-                  return (
-                    <ArtisanProfileCard 
-                      key={`artisan-${item.id}`} 
-                      artisan={item} 
-                    />
-                  );
-                }
-                
-                return (
-                  <ExperienceCard 
-                    key={`experience-${item.id}`} 
-                    experience={item} 
-                  />
-                );
-              })
+              <SwipeableFeed 
+                items={recommendedItems} 
+                onDeploy={deployInterest} 
+                onArchive={archiveTarget} 
+              />
             ) : activeZone === 'Search' ? (
               <div className="flex flex-col">
                 <HeaderSearch query={searchQuery} onQueryChange={setSearchQuery} />
                 <div className="mt-4 mb-4">
                   <h3 className="text-xs font-bold text-slate-900 uppercase tracking-widest mb-4">Suggested Artisans</h3>
                   <div className="flex flex-col gap-4">
-                    {recommendedItems.filter(i => i.type === 'artisan').slice(0, 2).map((item) => (
+                    {recommendedItems.filter((i): i is Artisan => i.type === 'artisan').slice(0, 2).map((item) => (
                       <ArtisanProfileCard key={`suggested-${item.id}`} artisan={item} />
                     ))}
                   </div>
@@ -110,7 +97,7 @@ export default function Home() {
                 <div className="mt-6 mb-4">
                   <h3 className="text-xs font-bold text-slate-900 uppercase tracking-widest mb-4">Trending Experiences</h3>
                   <div className="flex flex-col gap-4">
-                    {recommendedItems.filter(i => i.type === 'experience').slice(0, 2).map((item) => (
+                    {recommendedItems.filter((i): i is Experience => i.type === 'experience').slice(0, 2).map((item) => (
                       <ExperienceCard key={`trending-${item.id}`} experience={item} />
                     ))}
                   </div>
