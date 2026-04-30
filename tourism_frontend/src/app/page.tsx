@@ -10,10 +10,10 @@ import { ExperienceCard } from '@/components/feed/ExperienceCard';
 import { ProfileView } from '@/components/profile/ProfileView';
 import { LiveWeavingHUD } from '@/components/feed/LiveWeavingHUD';
 import DeepScanner from '@/components/feed/DeepScanner';
-import { useRecommendation, Artisan, Experience } from '@/context/RecommendationEngineContext';
+import { useRecommendationEngine, Artisan, Experience } from '@/context/RecommendationEngineContext';
 
 export default function Home() {
-  const { recommendedItems, activeCategory } = useRecommendation();
+  const { recommendedItems, activeCategory } = useRecommendationEngine();
   const [activeZone, setActiveZone] = React.useState('Home');
   const [searchQuery, setSearchQuery] = React.useState('');
 

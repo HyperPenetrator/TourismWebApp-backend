@@ -90,10 +90,10 @@ export const RecommendationProvider = ({ children }: { children: ReactNode }) =>
   );
 };
 
-export const useRecommendation = () => {
+export const useRecommendationEngine = () => {
   const context = useContext(RecommendationEngineContext);
   if (context === undefined) {
-    throw new Error('useRecommendation must be used within a RecommendationProvider');
+    throw new Error('useRecommendationEngine must be used within a RecommendationProvider');
   }
   return context;
 };
