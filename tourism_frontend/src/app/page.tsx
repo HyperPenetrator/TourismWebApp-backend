@@ -9,12 +9,11 @@ import { ArtisanProfileCard } from '@/components/feed/ArtisanProfileCard';
 import { ExperienceCard } from '@/components/feed/ExperienceCard';
 import { ProfileView } from '@/components/profile/ProfileView';
 import { LiveWeavingHUD } from '@/components/feed/LiveWeavingHUD';
-import { SwipeableFeed } from '@/components/feed/SwipeableFeed';
 import DeepScanner from '@/components/feed/DeepScanner';
 import { useRecommendation, FeedItem, Artisan, Experience } from '@/context/RecommendationEngineContext';
 
 export default function Home() {
-  const { recommendedItems, activeCategory, deployInterest, archiveTarget } = useRecommendation();
+  const { recommendedItems, activeCategory } = useRecommendation();
   const [activeZone, setActiveZone] = React.useState('Home');
   const [searchQuery, setSearchQuery] = React.useState('');
 
@@ -28,7 +27,7 @@ export default function Home() {
     <main className="relative min-h-screen bg-background pb-32">
       <TopBar />
       
-      {/* Background Ambience (Merged from Deep Scan Branch) */}
+      {/* Background Ambience */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
         <div className="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] bg-emerald-900/10 blur-[120px] rounded-full"></div>
         <div className="absolute top-[20%] -right-[10%] w-[30%] h-[50%] bg-emerald-800/5 blur-[100px] rounded-full"></div>
@@ -62,7 +61,7 @@ export default function Home() {
             </div>
           )}
 
-          {/* Featured Artisan Dossier / Live HUD Section (Merged) */}
+          {/* Featured Artisan Dossier / Live HUD Section */}
           {activeZone === 'Home' && (!activeCategory || activeCategory === 'Authentic Handloom') && (
             <div className="px-1 animate-in fade-in slide-in-from-top-4 duration-1000 delay-300 mb-8">
               <div className="flex flex-col gap-3">
@@ -78,11 +77,23 @@ export default function Home() {
 
           <div className="flex flex-col">
             {activeZone === 'Home' ? (
-              <SwipeableFeed 
-                items={recommendedItems} 
-                onDeploy={deployInterest} 
-                onArchive={archiveTarget} 
-              />
+              recommendedItems.map((item) => {
+                if (item.type === 'artisan') {
+                  return (
+                    <ArtisanProfileCard 
+                      key={`artisan-${item.id}`} 
+                      artisan={item} 
+                    />
+                  );
+                }
+                
+                return (
+                  <ExperienceCard 
+                    key={`experience-${item.id}`} 
+                    experience={item as Experience} 
+                  />
+                );
+              })
             ) : activeZone === 'Search' ? (
               <div className="flex flex-col">
                 <HeaderSearch query={searchQuery} onQueryChange={setSearchQuery} />
