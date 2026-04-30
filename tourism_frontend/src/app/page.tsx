@@ -8,6 +8,7 @@ import { BottomNav } from '@/components/layout/BottomNav';
 import { ArtisanProfileCard } from '@/components/feed/ArtisanProfileCard';
 import { ExperienceCard } from '@/components/feed/ExperienceCard';
 import { ProfileView } from '@/components/profile/ProfileView';
+import { ComposeView } from '@/components/feed/ComposeView';
 import { LiveWeavingHUD } from '@/components/feed/LiveWeavingHUD';
 import DeepScanner from '@/components/feed/DeepScanner';
 import { useRecommendationEngine, Artisan, Experience } from '@/context/RecommendationEngineContext';
@@ -123,6 +124,8 @@ export default function Home() {
               </div>
             ) : activeZone === 'Profile' ? (
               <ProfileView />
+            ) : activeZone === 'Compose' ? (
+              <ComposeView onPostComplete={() => setActiveZone('Home')} />
             ) : (
               <div className="flex flex-col items-center justify-center py-20 text-slate-400">
                 <div className="w-16 h-16 rounded-full border border-slate-200 dark:border-slate-800 flex items-center justify-center mb-4">

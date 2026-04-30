@@ -16,12 +16,12 @@ Dependencies:
 import json
 import uuid
 import logging
-from datetime import datetime, timezone
 from typing import Optional
 from enum import Enum
 
 from pydantic import BaseModel, Field, field_validator, ConfigDict
 from mcp.server.fastmcp import FastMCP
+from utils.common import utc_now_iso
 
 # ─── Logging ─────────────────────────────────────────────────────────────────
 
@@ -135,9 +135,6 @@ def _get_display_name(user_id: str) -> str:
     return _user_display_names.get(user_id, f"User-{user_id[-4:]}")
 
 
-def _utc_now_iso() -> str:
-    """Returns current UTC time in ISO 8601 format."""
-    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
 # ─── WebSocket Broadcast Bridge ─────────────────────────────────────────────
@@ -193,7 +190,7 @@ def log_engagement(params: EngagementInput) -> str:
     post_id = params.post_id
     user_id = params.user_id
     action = params.action_type
-    timestamp = _utc_now_iso()
+    timestamp = utc_now_iso()
     event_id = str(uuid.uuid4())[:12]
 
     # ── Duplicate Like Guard ──────────────────────────────────────────

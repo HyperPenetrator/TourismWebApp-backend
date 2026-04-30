@@ -14,9 +14,8 @@ Dependencies:
 
 import json
 import random
-from datetime import datetime, timezone
-
 from mcp.server.fastmcp import FastMCP
+from utils.common import utc_now_iso, validate_ids
 
 # ─── Server Initialization ──────────────────────────────────────────────────
 
@@ -37,22 +36,6 @@ _preference_graph: dict[str, dict[str, float]] = {}
 # Simulates an archive/exclusion list: { user_id: set(target_ids) }
 _archive_registry: dict[str, set[str]] = {}
 
-# ─── Helper Utilities ───────────────────────────────────────────────────────
-
-def _utc_now() -> str:
-    """Returns current UTC time in ISO 8601 format."""
-    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-
-
-def _validate_ids(*args: str) -> tuple[bool, str]:
-    """
-    Validates that all provided string IDs are non-empty.
-    Returns (is_valid, error_message).
-    """
-    for arg in args:
-        if not isinstance(arg, str) or not arg.strip():
-            return False, f"Invalid ID: '{arg}'. All IDs must be non-empty strings."
-    return True, ""
 
 
 # ─── MCP Tools ─────────────────────────────────────────────────────────────
@@ -75,7 +58,7 @@ def process_swipe_right(user_id: str, artisan_id: str) -> str:
     Returns:
         JSON string with the interaction status and updated affinity delta.
     """
-    is_valid, error_msg = _validate_ids(user_id, artisan_id)
+    is_valid, error_msg = validate_ids(user_id, artisan_id)
     if not is_valid:
         return json.dumps({
             "status": "error",
@@ -117,7 +100,7 @@ def process_swipe_right(user_id: str, artisan_id: str) -> str:
             "delta": affinity_delta,
             "new_score": user_prefs[category],
         },
-        "timestamp": _utc_now(),
+        "timestamp": utc_now_iso(),
         "engine_note": "Feed will prioritize similar profiles in next render cycle."
     })
 
@@ -140,7 +123,7 @@ def process_swipe_left(user_id: str, artisan_id: str) -> str:
     Returns:
         JSON string with the archive status and feed impact summary.
     """
-    is_valid, error_msg = _validate_ids(user_id, artisan_id)
+    is_valid, error_msg = validate_ids(user_id, artisan_id)
     if not is_valid:
         return json.dumps({
             "status": "error",
@@ -175,7 +158,7 @@ def process_swipe_left(user_id: str, artisan_id: str) -> str:
             "cleared_affinity_category": category if cleared_affinity is not None else None,
         },
         "filter_applied": True,
-        "timestamp": _utc_now(),
+        "timestamp": utc_now_iso(),
         "engine_note": "Profile excluded from feed. Preference graph updated."
     })
 

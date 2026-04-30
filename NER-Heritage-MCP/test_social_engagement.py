@@ -24,13 +24,15 @@ TEST_POST = "test_post_ws_broadcast"
 
 async def test_like_broadcast():
     """Test: Like action broadcasts NEW_LIKE to WebSocket subscribers."""
-    print("\n─── Test 1: Like Broadcast ───")
+    print("\n--- Test 1: Like Broadcast ---")
 
     async with websockets.connect(f"{WS_URL}/{TEST_POST}") as ws:
         # Should receive CONNECTED welcome
-        welcome = json.loads(await ws.recv())
-        assert welcome["type"] == "CONNECTED", f"Expected CONNECTED, got {welcome['type']}"
-        print(f"  ✓ Connected to room '{TEST_POST}'")
+        raw_msg = await ws.recv()
+        print(f"  [DEBUG] Received raw message: {raw_msg}")
+        welcome = json.loads(raw_msg)
+        assert welcome.get("type") == "CONNECTED", f"Expected CONNECTED, got {welcome.get('type')}"
+        print(f"  [PASS] Connected to room '{TEST_POST}'")
 
         # Trigger a like via REST
         async with httpx.AsyncClient() as client:
@@ -44,26 +46,26 @@ async def test_like_broadcast():
             )
             result = resp.json()
             assert result["status"] == "success", f"REST failed: {result}"
-            print(f"  ✓ Like logged: {result['user']} → {result['post_id']}")
+            print(f"  [PASS] Like logged: {result['user']} -> {result['post_id']}")
 
         # Wait for the broadcast
         broadcast = json.loads(await asyncio.wait_for(ws.recv(), timeout=3.0))
         assert broadcast["type"] == "NEW_LIKE", f"Expected NEW_LIKE, got {broadcast['type']}"
         assert broadcast["data"]["user"] == "Aman Sharma"
-        print(f"  ✓ Broadcast received: {broadcast['type']} from {broadcast['data']['user']}")
+        print(f"  [PASS] Broadcast received: {broadcast['type']} from {broadcast['data']['user']}")
         print(f"    Post stats: {broadcast['post_stats']}")
 
-    print("  ✓ PASSED\n")
+    print("  [PASS] PASSED\n")
 
 
 async def test_comment_broadcast():
     """Test: Comment action broadcasts NEW_COMMENT with text to subscribers."""
-    print("─── Test 2: Comment Broadcast ───")
+    print("--- Test 2: Comment Broadcast ---")
 
     async with websockets.connect(f"{WS_URL}/{TEST_POST}") as ws:
         welcome = json.loads(await ws.recv())
         assert welcome["type"] == "CONNECTED"
-        print(f"  ✓ Connected to room '{TEST_POST}'")
+        print(f"  [PASS] Connected to room '{TEST_POST}'")
 
         # Trigger a comment via REST
         async with httpx.AsyncClient() as client:
@@ -78,27 +80,27 @@ async def test_comment_broadcast():
             )
             result = resp.json()
             assert result["status"] == "success", f"REST failed: {result}"
-            print(f"  ✓ Comment logged: {result['user']}")
+            print(f"  [PASS] Comment logged: {result['user']}")
 
         broadcast = json.loads(await asyncio.wait_for(ws.recv(), timeout=3.0))
         assert broadcast["type"] == "NEW_COMMENT"
         assert broadcast["data"]["text"] == "This silk pattern is absolutely stunning!"
-        print(f"  ✓ Broadcast received: {broadcast['type']}")
+        print(f"  [PASS] Broadcast received: {broadcast['type']}")
         print(f"    User: {broadcast['data']['user']}")
         print(f"    Text: {broadcast['data']['text']}")
         print(f"    Post stats: {broadcast['post_stats']}")
 
-    print("  ✓ PASSED\n")
+    print("  [PASS] PASSED\n")
 
 
 async def test_reshare_broadcast():
     """Test: Reshare action broadcasts NEW_RESHARE to subscribers."""
-    print("─── Test 3: Reshare Broadcast ───")
+    print("--- Test 3: Reshare Broadcast ---")
 
     async with websockets.connect(f"{WS_URL}/{TEST_POST}") as ws:
         welcome = json.loads(await ws.recv())
         assert welcome["type"] == "CONNECTED"
-        print(f"  ✓ Connected to room '{TEST_POST}'")
+        print(f"  [PASS] Connected to room '{TEST_POST}'")
 
         async with httpx.AsyncClient() as client:
             resp = await client.post(
@@ -111,19 +113,19 @@ async def test_reshare_broadcast():
             )
             result = resp.json()
             assert result["status"] == "success"
-            print(f"  ✓ Reshare logged: {result['user']}")
+            print(f"  [PASS] Reshare logged: {result['user']}")
 
         broadcast = json.loads(await asyncio.wait_for(ws.recv(), timeout=3.0))
         assert broadcast["type"] == "NEW_RESHARE"
-        print(f"  ✓ Broadcast received: {broadcast['type']} from {broadcast['data']['user']}")
+        print(f"  [PASS] Broadcast received: {broadcast['type']} from {broadcast['data']['user']}")
         print(f"    Post stats: {broadcast['post_stats']}")
 
-    print("  ✓ PASSED\n")
+    print("  [PASS] PASSED\n")
 
 
 async def test_duplicate_like_guard():
     """Test: Duplicate like is rejected without broadcast."""
-    print("─── Test 4: Duplicate Like Guard ───")
+    print("--- Test 4: Duplicate Like Guard ---")
 
     async with httpx.AsyncClient() as client:
         resp = await client.post(
@@ -137,14 +139,14 @@ async def test_duplicate_like_guard():
         result = resp.json()
         assert result["status"] == "error"
         assert result["error_code"] == "DUPLICATE_LIKE"
-        print(f"  ✓ Duplicate like correctly rejected: {result['message']}")
+        print(f"  [PASS] Duplicate like correctly rejected: {result['message']}")
 
-    print("  ✓ PASSED\n")
+    print("  [PASS] PASSED\n")
 
 
 async def test_multi_subscriber_broadcast():
     """Test: Multiple WebSocket clients in the same room all receive the event."""
-    print("─── Test 5: Multi-Subscriber Broadcast ───")
+    print("--- Test 5: Multi-Subscriber Broadcast ---")
     multi_post = "test_post_multi_sub"
 
     # Connect 3 clients to the same room
@@ -155,7 +157,7 @@ async def test_multi_subscriber_broadcast():
         assert welcome["type"] == "CONNECTED"
         clients.append(ws)
 
-    print(f"  ✓ {len(clients)} clients connected to room '{multi_post}'")
+    print(f"  [PASS] {len(clients)} clients connected to room '{multi_post}'")
 
     # Trigger an engagement event
     async with httpx.AsyncClient() as client:
@@ -173,34 +175,34 @@ async def test_multi_subscriber_broadcast():
     for i, ws in enumerate(clients):
         broadcast = json.loads(await asyncio.wait_for(ws.recv(), timeout=3.0))
         assert broadcast["type"] == "NEW_LIKE"
-        print(f"  ✓ Client {i + 1} received: {broadcast['type']}")
+        print(f"  [PASS] Client {i + 1} received: {broadcast['type']}")
 
     # Clean up
     for ws in clients:
         await ws.close()
 
-    print("  ✓ PASSED\n")
+    print("  [PASS] PASSED\n")
 
 
 async def test_status_endpoint():
     """Test: Diagnostic endpoint returns accurate room stats."""
-    print("─── Test 6: Status Endpoint ───")
+    print("--- Test 6: Status Endpoint ---")
 
     async with httpx.AsyncClient() as client:
         resp = await client.get(f"{SERVER}/api/engagement/status")
         status = resp.json()
-        print(f"  ✓ Active rooms: {status['active_rooms']}")
-        print(f"  ✓ Total connections: {status['total_connections']}")
+        print(f"  [PASS] Active rooms: {status['active_rooms']}")
+        print(f"  [PASS] Total connections: {status['total_connections']}")
         if status.get("rooms"):
             for room, count in status["rooms"].items():
-                print(f"    └─ {room}: {count} clients")
+                print(f"    [-] {room}: {count} clients")
 
-    print("  ✓ PASSED\n")
+    print("  [PASS] PASSED\n")
 
 
 async def main():
     print("=" * 60)
-    print("  Spot@NE Social Engagement — Integration Tests")
+    print("  Spot@NE Social Engagement -- Integration Tests")
     print("=" * 60)
 
     await test_like_broadcast()
@@ -211,7 +213,7 @@ async def main():
     await test_status_endpoint()
 
     print("=" * 60)
-    print("  ALL 6 TESTS PASSED ✓")
+    print("  ALL 6 TESTS PASSED [PASS]")
     print("=" * 60)
 
 

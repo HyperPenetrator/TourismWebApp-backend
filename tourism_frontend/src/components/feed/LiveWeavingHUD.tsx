@@ -1,92 +1,20 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Activity, Clock, Layers, Radio, ShieldAlert } from 'lucide-react';
-
-interface WeavingMetrics {
-  weave_complexity: string;
-  current_progress: string;
-  shuttle_speed: string;
-  pattern_integrity: string;
-  estimated_completion_time: string;
-  status: string;
-}
-
-interface HUDData {
-  timestamp: number;
-  artisan_id: string;
-  metrics: WeavingMetrics;
-  alerts: string[];
-}
+import { useWebSocket } from '@/hooks/useWebSocket';
+import { HUDData } from '@/lib/types';
 
 export const LiveWeavingHUD = ({ artisanId = 'a1' }: { artisanId?: string }) => {
-  const [data, setData] = useState<HUDData | null>(null);
-  const [isConnected, setIsConnected] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
-
-  useEffect(() => {
-    const socketUrl = `ws://localhost:8001/ws/weaving/${artisanId}`;
-    let socket: WebSocket | null = null;
-    let reconnectTimeout: NodeJS.Timeout | null = null;
-
-    const connect = () => {
-      // Prevent multiple connections
-      if (socket && (socket.readyState === WebSocket.OPEN || socket.readyState === WebSocket.CONNECTING)) {
-        return;
-      }
-
-      try {
-        socket = new WebSocket(socketUrl);
-
-        socket.onopen = () => {
-          setIsConnected(true);
-          console.log('HUD: Connection established');
-        };
-
-        socket.onmessage = (event) => {
-          try {
-            const payload = JSON.parse(event.data);
-            setData(payload);
-          } catch (e) {
-            console.error('HUD: Error parsing payload', e);
-          }
-        };
-
-        socket.onclose = (event) => {
-          setIsConnected(false);
-          // Only retry if not intentional closure
-          if (!event.wasClean) {
-            console.log('HUD: Connection lost. Retrying in 5s...');
-            reconnectTimeout = setTimeout(connect, 5000);
-          } else {
-            console.log('HUD: Connection closed cleanly');
-          }
-        };
-
-        socket.onerror = (err) => {
-          console.warn('HUD: WebSocket error', err);
-          socket?.close();
-        };
-      } catch (err) {
-        console.error('HUD: Connection failed', err);
-        reconnectTimeout = setTimeout(connect, 5000);
-      }
-    };
-
-    connect();
-
-    return () => {
-      console.log('HUD: Cleaning up connection...');
-      if (reconnectTimeout) clearTimeout(reconnectTimeout);
-      if (socket) {
-        // Prevent close() before established error
-        if (socket.readyState === WebSocket.OPEN || socket.readyState === WebSocket.CONNECTING) {
-          socket.onclose = null; // Prevent the onclose retry from firing
-          socket.close();
-        }
-      }
-    };
-  }, [artisanId]);
+  
+  const { data, isConnected } = useWebSocket<HUDData>(
+    `ws://localhost:8001/ws/weaving/${artisanId}`,
+    {
+      onConnect: () => console.log('HUD: Connection established'),
+      onDisconnect: () => console.log('HUD: Connection closed. Ensure backend is running.'),
+    }
+  );
 
   // Handle auto-playing video simulation
   useEffect(() => {
