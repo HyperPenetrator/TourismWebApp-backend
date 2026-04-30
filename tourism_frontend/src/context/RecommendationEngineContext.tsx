@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, ReactNode, useMemo } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useMemo, useCallback } from 'react';
 import mockData from '@/lib/data.json';
 
 export interface Artisan {
@@ -30,17 +30,35 @@ export interface Experience {
 }
 
 export type FeedItem = Artisan | Experience;
+export type SwipeDirection = 'left' | 'right' | 'up' | 'down' | null;
 
 interface RecommendationEngineContextType {
+  // Recommendation Logic
   activeCategory: string | null;
   setActiveCategory: (category: string | null) => void;
   recommendedItems: FeedItem[];
   weightMap: Record<string, number>;
+  
+  // Swipe Gesture States
+  dragX: number;
+  dragY: number;
+  swipeDirection: SwipeDirection;
+  
+  // Actions
+  setDragX: (x: number) => void;
+  setDragY: (y: number) => void;
+  setSwipeDirection: (direction: SwipeDirection) => void;
+  handleSwipe: (direction: SwipeDirection) => Promise<void>;
+  
+  // Engine Status
+  isLoading: boolean;
+  error: string | null;
 }
 
 const RecommendationEngineContext = createContext<RecommendationEngineContextType | undefined>(undefined);
 
 export const RecommendationProvider = ({ children }: { children: ReactNode }) => {
+  // Recommendation States
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [weightMap, setWeightMap] = useState<Record<string, number>>({
     'Eco-Tours': 0,
@@ -48,7 +66,17 @@ export const RecommendationProvider = ({ children }: { children: ReactNode }) =>
     'Local Stalls': 0
   });
 
-  const handleSetCategory = (category: string | null) => {
+  // Gesture States
+  const [dragX, setDragX] = useState(0);
+  const [dragY, setDragY] = useState(0);
+  const [swipeDirection, setSwipeDirection] = useState<SwipeDirection>(null);
+  
+  // Status States
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Category selection handler
+  const handleSetCategory = useCallback((category: string | null) => {
     setActiveCategory(category);
     if (category) {
       setWeightMap(prev => ({
@@ -56,8 +84,32 @@ export const RecommendationProvider = ({ children }: { children: ReactNode }) =>
         [category]: prev[category] + 1
       }));
     }
-  };
+  }, []);
 
+  // Swipe logic (Interfacing with backend API eventually)
+  const handleSwipe = useCallback(async (direction: SwipeDirection) => {
+    if (!direction) return;
+
+    try {
+      setIsLoading(true);
+      // In production, this would call our backend API to update weights/preferences
+      // await fetch('/api/recommendations/swipe', { method: 'POST', body: JSON.stringify({ direction }) });
+      
+      console.log(`Backend Interface: Recorded swipe ${direction}`);
+      
+      // Reset gesture states after swipe
+      setDragX(0);
+      setDragY(0);
+      setSwipeDirection(null);
+    } catch (err) {
+      setError('Failed to process swipe');
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  // Engine: Sort items based on weights and active category
   const recommendedItems = useMemo(() => {
     const allItems: FeedItem[] = [
       ...mockData.artisans.map(a => ({ ...a, type: 'artisan' as const })),
@@ -68,7 +120,6 @@ export const RecommendationProvider = ({ children }: { children: ReactNode }) =>
       const weightA = weightMap[a.category] || 0;
       const weightB = weightMap[b.category] || 0;
       
-      // If categories match active category, they get a boost
       const activeBoostA = a.category === activeCategory ? 10 : 0;
       const activeBoostB = b.category === activeCategory ? 10 : 0;
 
@@ -76,24 +127,33 @@ export const RecommendationProvider = ({ children }: { children: ReactNode }) =>
     });
   }, [activeCategory, weightMap]);
 
+  const value = useMemo(() => ({
+    activeCategory,
+    setActiveCategory: handleSetCategory,
+    recommendedItems,
+    weightMap,
+    dragX,
+    dragY,
+    swipeDirection,
+    setDragX,
+    setDragY,
+    setSwipeDirection,
+    handleSwipe,
+    isLoading,
+    error
+  }), [activeCategory, handleSetCategory, recommendedItems, weightMap, dragX, dragY, swipeDirection, handleSwipe, isLoading, error]);
+
   return (
-    <RecommendationEngineContext.Provider 
-      value={{ 
-        activeCategory, 
-        setActiveCategory: handleSetCategory, 
-        recommendedItems,
-        weightMap 
-      }}
-    >
+    <RecommendationEngineContext.Provider value={value}>
       {children}
     </RecommendationEngineContext.Provider>
   );
 };
 
-export const useRecommendation = () => {
+export const useRecommendationEngine = () => {
   const context = useContext(RecommendationEngineContext);
   if (context === undefined) {
-    throw new Error('useRecommendation must be used within a RecommendationProvider');
+    throw new Error('useRecommendationEngine must be used within a RecommendationProvider');
   }
   return context;
 };

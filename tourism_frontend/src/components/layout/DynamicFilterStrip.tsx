@@ -1,12 +1,12 @@
 'use client';
 
 import React from 'react';
-import { useRecommendation } from '@/context/RecommendationEngineContext';
+import { useRecommendationEngine } from '@/context/RecommendationEngineContext';
 import mockData from '@/lib/data.json';
 import { Zap, TrendingUp, Tag, Globe } from 'lucide-react';
 
 export const DynamicFilterStrip = () => {
-  const { activeCategory, setActiveCategory } = useRecommendation();
+  const { activeCategory, setActiveCategory } = useRecommendationEngine();
 
   const getIcon = (id: string) => {
     switch (id) {
