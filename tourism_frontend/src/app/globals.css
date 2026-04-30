@@ -1,22 +1,35 @@
 @import "tailwindcss";
 
 @theme {
-  --color-background: #050805;
-  --color-foreground: #e0f2e9;
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
   
+  --color-tactical-black: #0f172a;
+  --color-tactical-green: #10b981;
+  --color-tactical-blue: #3b82f6;
   --color-tactical-emerald: #10b981;
-  --color-tactical-green: #1a2e1a;
-  --color-tactical-accent: #10b981;
+  --color-tactical-accent: #059669;
   
-  --background-image-glass: linear-gradient(to bottom right, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
+  --background-image-glass: linear-gradient(to bottom right, rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0.4));
   
+  --shadow-terra: 0 10px 40px rgba(0, 0, 0, 0.05);
   --shadow-neon: 0 0 15px rgba(16, 185, 129, 0.3);
-  --shadow-neon-strong: 0 0 25px rgba(16, 185, 129, 0.5);
 }
 
 :root {
-  --background: #050805;
-  --foreground: #e0f2e9;
+  --background: #FDFCFB;
+  --foreground: #1A1A1A;
+  --spine-line: rgba(0, 0, 0, 0.05);
+}
+
+.dark {
+  --background: #0F172A;
+  --foreground: #F8FAFC;
+  --spine-line: rgba(255, 255, 255, 0.1);
+}
+
+html, body {
+  transition: background-color 0.4s ease, color 0.4s ease;
 }
 
 body {
@@ -26,13 +39,27 @@ body {
   overflow-x: hidden;
 }
 
+/* Spine Stream Utility */
+.spine-line {
+  @apply absolute left-[23.5px] top-[48px] bottom-0 w-[1px];
+  background-color: var(--spine-line);
+}
+
 /* Glassmorphism Utility */
 .glass-panel {
-  @apply bg-white/5 backdrop-blur-md border border-white/10;
+  @apply bg-white/95 backdrop-blur-[20px] border-t border-black/[0.05];
+}
+
+.dark .glass-panel {
+  @apply bg-slate-900/90 border-white/[0.05];
 }
 
 .glass-card {
-  @apply bg-white/5 backdrop-blur-lg border border-emerald-500/20 shadow-xl;
+  @apply bg-white/70 backdrop-blur-lg border border-tactical-emerald/20 shadow-sm;
+}
+
+.dark .glass-card {
+  @apply bg-slate-800/40 border-tactical-emerald/10;
 }
 
 .neon-border {
@@ -63,6 +90,26 @@ body {
 
 ::-webkit-scrollbar-thumb {
   @apply bg-emerald-900/50 rounded-full;
+}
+
+/* Brand-Alpha Animations */
+@keyframes radar-ping {
+  0% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 0px rgba(16, 185, 129, 0));
+  }
+  50% {
+    transform: scale(1.2);
+    filter: drop-shadow(0 0 8px rgba(16, 185, 129, 0.8));
+  }
+  100% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 0px rgba(16, 185, 129, 0));
+  }
+}
+
+.animate-radar-ping {
+  animation: radar-ping 1.2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
 @keyframes scan-line {

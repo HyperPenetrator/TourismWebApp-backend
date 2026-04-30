@@ -6,7 +6,11 @@
       "category": "handloom",
       "location": "Imphal, Manipur",
       "bio": "Master weaver of traditional Meitei silk sarees with 30 years of experience.",
-      "image": "https://images.unsplash.com/photo-1621360841013-c7683c659ec6?q=80&w=1000",
+      "images": [
+        "https://images.unsplash.com/photo-1621360841013-c7683c659ec6?q=80&w=1000",
+        "https://images.unsplash.com/photo-1590602847861-f357a9332bbc?q=80&w=1000",
+        "https://images.unsplash.com/photo-1583091000305-671239c09930?q=80&w=1000"
+      ],
       "isVerified": true,
       "rating": 4.9,
       "experienceCount": 12
@@ -17,7 +21,11 @@
       "category": "bamboo",
       "location": "Gangtok, Sikkim",
       "bio": "Specializes in sustainable bamboo architecture and home decor.",
-      "image": "https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=1000",
+      "images": [
+        "https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=1000",
+        "https://images.unsplash.com/photo-1596464716127-f2a82984de30?q=80&w=1000",
+        "https://images.unsplash.com/photo-1582510003544-4d00b7f74220?q=80&w=1000"
+      ],
       "isVerified": true,
       "rating": 4.8,
       "experienceCount": 8
@@ -28,7 +36,11 @@
       "category": "pottery",
       "location": "Majuli, Assam",
       "bio": "Preserving the ancient art of Salmora pottery on the world's largest river island.",
-      "image": "https://images.unsplash.com/photo-1590602847861-f357a9332bbc?q=80&w=1000",
+      "images": [
+        "https://images.unsplash.com/photo-1590602847861-f357a9332bbc?q=80&w=1000",
+        "https://images.unsplash.com/photo-1621360841013-c7683c659ec6?q=80&w=1000",
+        "https://images.unsplash.com/photo-1582510003544-4d00b7f74220?q=80&w=1000"
+      ],
       "isVerified": true,
       "rating": 4.7,
       "experienceCount": 5
@@ -39,10 +51,14 @@
       "id": "e1",
       "artisanId": "a1",
       "title": "Moirang Phee Weaving Masterclass",
-      "category": "Authentic Handloom",
+      "category": "Ethnic",
       "price": 1200,
       "duration": "4 hours",
-      "image": "https://images.unsplash.com/photo-1583091000305-671239c09930?q=80&w=1000",
+      "images": [
+        "https://images.unsplash.com/photo-1583091000305-671239c09930?q=80&w=1000",
+        "https://images.unsplash.com/photo-1621360841013-c7683c659ec6?q=80&w=1000",
+        "https://images.unsplash.com/photo-1590602847861-f357a9332bbc?q=80&w=1000"
+      ],
       "description": "Learn the intricate 'Moirang Phee' pattern from a national award-winning weaver.",
       "tags": ["Handloom", "Cultural", "Manipur"]
     },
@@ -50,10 +66,14 @@
       "id": "e2",
       "artisanId": "a2",
       "title": "Bamboo Crafting Workshop",
-      "category": "Local Stalls",
+      "category": "Budget",
       "price": 850,
       "duration": "3 hours",
-      "image": "https://images.unsplash.com/photo-1596464716127-f2a82984de30?q=80&w=1000",
+      "images": [
+        "https://images.unsplash.com/photo-1596464716127-f2a82984de30?q=80&w=1000",
+        "https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=1000",
+        "https://images.unsplash.com/photo-1583091000305-671239c09930?q=80&w=1000"
+      ],
       "description": "Create your own sustainable kitchenware using local bamboo varieties.",
       "tags": ["Eco-friendly", "Workshop", "Sikkim"]
     },
@@ -61,15 +81,21 @@
       "id": "e3",
       "artisanId": "a3",
       "title": "Majuli River Island Pottery Tour",
-      "category": "Eco-Tours",
+      "category": "Trending",
       "price": 1500,
       "duration": "Full Day",
-      "image": "https://images.unsplash.com/photo-1582510003544-4d00b7f74220?q=80&w=1000",
+      "images": [
+        "https://images.unsplash.com/photo-1582510003544-4d00b7f74220?q=80&w=1000",
+        "https://images.unsplash.com/photo-1590602847861-f357a9332bbc?q=80&w=1000",
+        "https://images.unsplash.com/photo-1621360841013-c7683c659ec6?q=80&w=1000"
+      ],
       "description": "A deep dive into the lives of the Mising tribe and their relationship with clay.",
       "tags": ["Adventure", "Pottery", "Majuli"]
     }
   ],
   "categories": [
+    { "id": "budget", "label": "Budget", "value": "Budget" },
+    { "id": "ethnic", "label": "Ethnic", "value": "Ethnic" },
     { "id": "eco", "label": "🌿 Eco-Tours", "value": "Eco-Tours" },
     { "id": "handloom", "label": "🧶 Authentic Handloom", "value": "Authentic Handloom" },
     { "id": "stalls", "label": "📍 Local Stalls", "value": "Local Stalls" }
