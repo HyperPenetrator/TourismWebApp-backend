@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { ShieldCheck, Send, MessageSquare, Info, Star, ChevronLeft, Award } from 'lucide-react';
+import Image from 'next/image';
+import { ShieldCheck, Send, MessageSquare, Info, ChevronLeft, Award } from 'lucide-react';
 import Link from 'next/link';
 import { useArtisanComms } from '@/context/ArtisanCommsContext';
 
@@ -98,7 +99,13 @@ export default function ArtisanCommsPage() {
               }`}
             >
               <div className="relative">
-                <img src={artisan.avatar} alt={artisan.name} className="w-12 h-12 rounded-xl object-cover grayscale brightness-75" />
+                <Image 
+                  src={artisan.avatar} 
+                  alt={artisan.name} 
+                  width={48}
+                  height={48}
+                  className="rounded-xl object-cover grayscale brightness-75" 
+                />
                 <div className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 border-2 border-black"></div>
               </div>
               <div className="flex flex-col items-start">

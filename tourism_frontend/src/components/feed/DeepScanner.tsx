@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useRef } from "react";
+import Image from "next/image";
 import { Camera, Upload, ShieldCheck, Zap, AlertTriangle } from "lucide-react";
 import { AnalysisEngine, AnalysisResult } from "@/lib/AnalysisEngine";
 
@@ -53,7 +54,7 @@ export default function DeepScanner() {
       <div className="hud-element glass-panel aspect-square w-full rounded-lg overflow-hidden border-tactical-emerald/20 flex flex-col items-center justify-center relative group">
         {image ? (
           <div className="relative w-full h-full">
-            <img src={image} alt="Handloom Sample" className="w-full h-full object-cover" />
+            <Image src={image} alt="Handloom Sample" fill className="object-cover" />
             {isScanning && <div className="scan-line" />}
             {!isScanning && result && (
               <div className="absolute inset-0 bg-tactical-emerald/10 animate-pulse pointer-events-none" />
@@ -125,7 +126,7 @@ export default function DeepScanner() {
                   Origin: {result.pattern.origin}
                 </p>
                 <div className="p-3 bg-black/40 border border-white/5 rounded text-xs text-white/70 italic">
-                  "{result.pattern.texture}"
+                  &quot;{result.pattern.texture}&quot;
                 </div>
               </div>
             </div>

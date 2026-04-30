@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import Image from 'next/image';
 import { Heart, MessageCircle, Repeat2, Share, CheckCircle2 } from 'lucide-react';
 import { ExperienceCarousel } from '../ui/ExperienceCarousel';
 
@@ -15,11 +16,12 @@ export const ArtisanProfileCard = ({ artisan }: ArtisanProfileCardProps) => {
     <div className="relative grid grid-cols-[70px_1fr] group">
       {/* The Spine Column */}
       <div className="flex flex-col items-center relative">
-        <div className="w-12 h-12 rounded-full overflow-hidden border border-spine-line shadow-sm z-10 bg-background">
-          <img 
+        <div className="w-12 h-12 rounded-full overflow-hidden border border-spine-line shadow-sm z-10 bg-background relative">
+          <Image 
             src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${artisan.name}`} 
             alt={artisan.name} 
-            className="w-full h-full object-cover" 
+            fill
+            className="object-cover" 
           />
         </div>
         {/* Visual Spine */}

@@ -10,7 +10,7 @@ import { ExperienceCard } from '@/components/feed/ExperienceCard';
 import { ProfileView } from '@/components/profile/ProfileView';
 import { LiveWeavingHUD } from '@/components/feed/LiveWeavingHUD';
 import DeepScanner from '@/components/feed/DeepScanner';
-import { useRecommendation, FeedItem, Artisan, Experience } from '@/context/RecommendationEngineContext';
+import { useRecommendation, Artisan, Experience } from '@/context/RecommendationEngineContext';
 
 export default function Home() {
   const { recommendedItems, activeCategory } = useRecommendation();
@@ -19,6 +19,7 @@ export default function Home() {
 
   React.useEffect(() => {
     if (activeZone !== 'Search') {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSearchQuery('');
     }
   }, [activeZone]);
@@ -81,7 +82,7 @@ export default function Home() {
                 if (item.type === 'artisan') {
                   return (
                     <ArtisanProfileCard 
-                      key={`artisan-${item.id}`} 
+                      key={item.id} 
                       artisan={item} 
                     />
                   );
@@ -89,7 +90,7 @@ export default function Home() {
                 
                 return (
                   <ExperienceCard 
-                    key={`experience-${item.id}`} 
+                    key={item.id} 
                     experience={item as Experience} 
                   />
                 );
@@ -100,17 +101,23 @@ export default function Home() {
                 <div className="mt-4 mb-4">
                   <h3 className="text-xs font-bold text-slate-900 uppercase tracking-widest mb-4">Suggested Artisans</h3>
                   <div className="flex flex-col gap-4">
-                    {recommendedItems.filter((i): i is Artisan => i.type === 'artisan').slice(0, 2).map((item) => (
-                      <ArtisanProfileCard key={`suggested-${item.id}`} artisan={item} />
-                    ))}
+                    {recommendedItems
+                      .filter((i): i is Artisan => i.type === 'artisan')
+                      .slice(0, 2)
+                      .map((item) => (
+                        <ArtisanProfileCard key={item.id} artisan={item} />
+                      ))}
                   </div>
                 </div>
                 <div className="mt-6 mb-4">
                   <h3 className="text-xs font-bold text-slate-900 uppercase tracking-widest mb-4">Trending Experiences</h3>
                   <div className="flex flex-col gap-4">
-                    {recommendedItems.filter((i): i is Experience => i.type === 'experience').slice(0, 2).map((item) => (
-                      <ExperienceCard key={`trending-${item.id}`} experience={item} />
-                    ))}
+                    {recommendedItems
+                      .filter((i): i is Experience => i.type === 'experience')
+                      .slice(0, 2)
+                      .map((item) => (
+                        <ExperienceCard key={item.id} experience={item} />
+                      ))}
                   </div>
                 </div>
               </div>

@@ -46,12 +46,12 @@ export const LiveWeavingHUD = ({ artisanId = 'a1' }: { artisanId?: string }) => 
 
         socket.onclose = () => {
           setIsConnected(false);
-          console.log('HUD: Connection closed, retrying...');
-          setTimeout(connect, 3000);
+          console.log('HUD: Connection closed. Ensure backend (websocket_mock.py) is running on port 8001.');
+          setTimeout(connect, 5000);
         };
 
-        socket.onerror = (error) => {
-          console.error('HUD: WebSocket error', error);
+        socket.onerror = () => {
+          // console.error handled in onclose retry logic
           socket?.close();
         };
       } catch (err) {
@@ -69,12 +69,12 @@ export const LiveWeavingHUD = ({ artisanId = 'a1' }: { artisanId?: string }) => 
   // Handle auto-playing video simulation
   useEffect(() => {
     if (videoRef.current) {
-      videoRef.current.play().catch(() => {
-        console.log('Autoplay blocked');
+      // Explicitly mute to satisfy browser autoplay policies
+      videoRef.current.muted = true;
+      videoRef.current.play().catch((error) => {
+        console.warn('HUD: Autoplay blocked or failed:', error);
       });
     }
-    
-    return () => {};
   }, []);
 
   const progressValue = data ? parseFloat(data.metrics.current_progress.replace('%', '')) : 0;

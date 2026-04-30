@@ -14,6 +14,13 @@ export interface AnalysisResult {
   timestamp: string;
 }
 
+interface MockData {
+  artisans: unknown[];
+  experiences: unknown[];
+  categories: unknown[];
+  patterns: Pattern[];
+}
+
 /**
  * AnalysisEngine Utility
  * Specialized logic for visual pattern recognition matching against heritage data.
@@ -23,11 +30,12 @@ export const AnalysisEngine = {
    * Mock pattern matching logic based on texture metadata.
    * In a real scenario, this would interface with a Vision AI model.
    */
-  matchPattern: async (imageBuffer?: string): Promise<AnalysisResult> => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  matchPattern: async (_imageBuffer?: string): Promise<AnalysisResult> => {
     // Simulate processing time
     await new Promise(resolve => setTimeout(resolve, 2500));
 
-    const patterns = (data as any).patterns as Pattern[];
+    const patterns = (data as unknown as MockData).patterns;
     
     // Pick a random pattern for simulation
     const matchedPattern = patterns[Math.floor(Math.random() * patterns.length)];

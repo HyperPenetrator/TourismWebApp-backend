@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import React, { createContext, useContext, useState, ReactNode } from 'react';
 
 interface Message {
   id: string;
@@ -39,7 +39,8 @@ export const ArtisanCommsProvider = ({ children }: { children: ReactNode }) => {
 
   const [commissions, setCommissions] = useState<Commission[]>([]);
 
-  const sendMessage = (text: string, artisanId: string) => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const sendMessage = (text: string, _artisanId: string) => {
     const newMessage: Message = {
       id: Date.now().toString(),
       sender: 'user',

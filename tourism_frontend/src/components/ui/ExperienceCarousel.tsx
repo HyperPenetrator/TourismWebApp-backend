@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
+import Image from 'next/image';
 
 interface ExperienceCarouselProps {
   images: string[];
@@ -35,11 +36,14 @@ export const ExperienceCarousel = ({
             key={`${image}-${idx}`}
             className="flex-none w-full h-full snap-center"
           >
-            <img 
-              src={image} 
-              alt={`Slide ${idx + 1}`} 
-              className="w-full h-full object-cover" 
-            />
+            <div className="relative w-full h-full">
+              <Image 
+                src={image} 
+                alt={`Slide ${idx + 1}`} 
+                fill
+                className="object-cover" 
+              />
+            </div>
           </div>
         ))}
       </div>
