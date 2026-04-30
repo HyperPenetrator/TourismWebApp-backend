@@ -3,124 +3,45 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
+  --color-tactical-black: #0f172a;
+  --color-tactical-emerald: #10b981;
+  
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   
-  --color-tactical-black: #0f172a;
-  --color-tactical-green: #10b981;
-  --color-tactical-blue: #3b82f6;
-  --color-tactical-emerald: #10b981;
-  --color-tactical-accent: #059669;
-  
-  --background-image-glass: linear-gradient(to bottom right, rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0.4));
-  
-  --shadow-terra: 0 10px 40px rgba(0, 0, 0, 0.05);
-  --shadow-neon: 0 0 15px rgba(16, 185, 129, 0.3);
+  --shadow-glass: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
 }
 
 :root {
-  --background: #FDFCFB;
-  --foreground: #1A1A1A;
-  --spine-line: rgba(0, 0, 0, 0.05);
+  --background: #ffffff;
+  --foreground: #0f172a;
 }
 
 .dark {
   --background: #0f172a;
   --foreground: #f8fafc;
-  --spine-line: rgba(255, 255, 255, 0.1);
 }
 
-html, body {
-  transition: background-color 0.4s ease, color 0.4s ease;
+@layer utilities {
+  .glass-panel {
+    @apply bg-white/10 backdrop-blur-md border border-white/20 shadow-glass;
+  }
+  
+  .glass-card {
+    @apply bg-white/5 backdrop-blur-lg border border-white/10 rounded-2xl transition-all duration-300;
+  }
+  
+  .dark .glass-panel {
+    @apply bg-slate-900/40 border-slate-700/50;
+  }
+  
+  .dark .glass-card {
+    @apply bg-slate-800/30 border-slate-700/30 hover:border-tactical-emerald/30;
+  }
 }
 
 body {
-  background: var(--background);
+  background-color: var(--background);
   color: var(--foreground);
-  font-family: var(--font-sans);
-  overflow-x: hidden;
-}
-
-/* Spine Stream Utility */
-.spine-line {
-  @apply absolute left-[23.5px] top-[48px] bottom-0 w-[1px];
-  background-color: var(--spine-line);
-}
-
-/* Glassmorphism Utility */
-.glass-panel {
-  @apply bg-white/95 backdrop-blur-[20px] border-t border-black/[0.05];
-}
-
-.dark .glass-panel {
-  @apply bg-slate-900/90 border-white/[0.05];
-}
-
-.glass-card {
-  @apply bg-white/70 backdrop-blur-lg border border-tactical-emerald/20 shadow-sm;
-}
-
-.dark .glass-card {
-  @apply bg-slate-800/40 border-tactical-emerald/10;
-}
-
-.neon-border {
-  @apply border border-emerald-500/30 shadow-[0_0_15px_rgba(16,185,129,0.2)];
-}
-
-.neon-text {
-  @apply text-emerald-400 drop-shadow-[0_0_8px_rgba(52,211,153,0.5)];
-}
-
-.hud-element {
-  @apply relative overflow-hidden;
-}
-
-.hud-element::after {
-  content: '';
-  @apply absolute inset-0 pointer-events-none border border-white/5;
-}
-
-/* Scrollbar styling for tactical look */
-::-webkit-scrollbar {
-  width: 4px;
-}
-
-::-webkit-scrollbar-track {
-  @apply bg-black/20;
-}
-
-::-webkit-scrollbar-thumb {
-  @apply bg-emerald-900/50 rounded-full;
-}
-
-/* Brand-Alpha Animations */
-@keyframes radar-ping {
-  0% {
-    transform: scale(1);
-    filter: drop-shadow(0 0 0px rgba(16, 185, 129, 0));
-  }
-  50% {
-    transform: scale(1.2);
-    filter: drop-shadow(0 0 8px rgba(16, 185, 129, 0.8));
-  }
-  100% {
-    transform: scale(1);
-    filter: drop-shadow(0 0 0px rgba(16, 185, 129, 0));
-  }
-}
-
-.animate-radar-ping {
-  animation: radar-ping 1.2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-
-@keyframes scan-line {
-  0% { top: 0; opacity: 0.2; }
-  50% { opacity: 1; }
-  100% { top: 100%; opacity: 0.2; }
-}
-
-.scan-line {
-  @apply absolute left-0 right-0 h-1 bg-tactical-emerald shadow-[0_0_15px_#10b981] z-10;
-  animation: scan-line 2s linear infinite;
+  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
 }
