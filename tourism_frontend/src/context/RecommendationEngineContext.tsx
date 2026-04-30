@@ -3,38 +3,10 @@
 import React, { createContext, useContext, useState, ReactNode, useMemo } from 'react';
 import mockData from '@/lib/data.json';
 
-export interface Artisan {
-  id: string;
-  name: string;
-  category: string;
-  location: string;
-  bio: string;
-  image: string;
-  isVerified: boolean;
-  rating: number;
-  experienceCount: number;
-  type: 'artisan';
-}
-
-export interface Experience {
-  id: string;
-  artisanId: string;
-  title: string;
-  category: string;
-  price: number;
-  duration: string;
-  image: string;
-  description: string;
-  tags: string[];
-  type: 'experience';
-}
-
-export type FeedItem = Artisan | Experience;
-
 interface RecommendationEngineContextType {
   activeCategory: string | null;
   setActiveCategory: (category: string | null) => void;
-  recommendedItems: FeedItem[];
+  recommendedItems: any[];
   weightMap: Record<string, number>;
 }
 
@@ -42,8 +14,6 @@ const RecommendationEngineContext = createContext<RecommendationEngineContextTyp
 
 export const RecommendationProvider = ({ children }: { children: ReactNode }) => {
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
-  
-  // Track user interactions to weight categories
   const [weightMap, setWeightMap] = useState<Record<string, number>>({
     'Eco-Tours': 0,
     'Authentic Handloom': 0,
@@ -53,41 +23,28 @@ export const RecommendationProvider = ({ children }: { children: ReactNode }) =>
   const handleSetCategory = (category: string | null) => {
     setActiveCategory(category);
     if (category) {
-      setWeightMap((prev: Record<string, number>) => ({
+      setWeightMap(prev => ({
         ...prev,
-        [category]: (prev[category] || 0) + 1
+        [category]: prev[category] + 1
       }));
     }
   };
 
   const recommendedItems = useMemo(() => {
-    const artisans: Artisan[] = mockData.artisans.map(a => ({ ...a, type: 'artisan' as const }));
-    const experiences: Experience[] = mockData.experiences.map(e => ({ ...e, type: 'experience' as const }));
-    
-    const allItems: FeedItem[] = [...artisans, ...experiences];
+    const allItems = [
+      ...mockData.artisans.map(a => ({ ...a, type: 'artisan' })),
+      ...mockData.experiences.map(e => ({ ...e, type: 'experience' }))
+    ];
 
     return [...allItems].sort((a, b) => {
       const weightA = weightMap[a.category] || 0;
       const weightB = weightMap[b.category] || 0;
       
-      // Verification bonus (verified master craftsmen get a huge boost)
-      const verifiedA = (a.type === 'artisan' && a.isVerified) ? 50 : 0;
-      const verifiedB = (b.type === 'artisan' && b.isVerified) ? 50 : 0;
-      
-      // Calculate score based on weights, active category, and verification
-      const scoreA = weightA + (a.category === activeCategory ? 20 : 0) + verifiedA;
-      const scoreB = weightB + (b.category === activeCategory ? 20 : 0) + verifiedB;
+      // If categories match active category, they get a boost
+      const activeBoostA = a.category === activeCategory ? 10 : 0;
+      const activeBoostB = b.category === activeCategory ? 10 : 0;
 
-      // Primary sort: Score
-      if (scoreB !== scoreA) {
-        return scoreB - scoreA;
-      }
-
-      // Secondary sort: Rating
-      const ratingA = (a.type === 'artisan' ? a.rating : 4.5);
-      const ratingB = (b.type === 'artisan' ? b.rating : 4.5);
-      
-      return ratingB - ratingA;
+      return (weightB + activeBoostB) - (weightA + activeBoostA);
     });
   }, [activeCategory, weightMap]);
 
