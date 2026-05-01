@@ -24,7 +24,8 @@ export const MarketplaceFeed = () => {
 
   useEffect(() => {
     // Establish WebSocket connection
-    const socket = new WebSocket('ws://localhost:8001/ws/feed');
+    const wsBaseUrl = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8001';
+    const socket = new WebSocket(`${wsBaseUrl}/ws/feed`);
 
     socket.onopen = () => {
       console.log('Connected to Marketplace Live Feed');

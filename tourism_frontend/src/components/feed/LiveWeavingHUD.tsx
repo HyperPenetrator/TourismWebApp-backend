@@ -9,7 +9,7 @@ export const LiveWeavingHUD = ({ artisanId = 'a1' }: { artisanId?: string }) => 
   const videoRef = useRef<HTMLVideoElement>(null);
   
   const { data, isConnected } = useWebSocket<HUDData>(
-    `ws://localhost:8001/ws/weaving/${artisanId}`,
+    `${process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8001'}/ws/weaving/${artisanId}`,
     {
       onConnect: () => console.log('HUD: Connection established'),
       onDisconnect: () => console.log('HUD: Connection closed. Ensure backend is running.'),

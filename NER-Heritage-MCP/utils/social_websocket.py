@@ -284,5 +284,7 @@ async def trigger_broadcast(payload: BroadcastPayload):
     return {"status": "success"}
 
 if __name__ == "__main__":
-    logger.info("Starting Unified Spot@NE WebSocket Manager on port 8001...")
-    uvicorn.run(app, host="0.0.0.0", port=8001)
+    import os
+    port = int(os.environ.get("PORT", 7860))
+    logger.info(f"Starting Unified Spot@NE WebSocket Manager on port {port}...")
+    uvicorn.run(app, host="0.0.0.0", port=port)

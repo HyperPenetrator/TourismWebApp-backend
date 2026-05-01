@@ -36,7 +36,7 @@ const DUMMY_ITEMS: MarketplaceItem[] = [
 
 export const LiveMarketplaceFeed: React.FC<LiveMarketplaceFeedProps> = ({ 
   initialItems = DUMMY_ITEMS, 
-  wsUrl = 'ws://localhost:8001/ws/marketplace' 
+  wsUrl = `${process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8001'}/ws/marketplace` 
 }) => {
   const [items, setItems] = useState<MarketplaceItem[]>(initialItems);
   const { newItem, isConnected, mockPushItem } = useMarketplaceWebSocket(wsUrl);
