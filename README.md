@@ -66,3 +66,4 @@ Spot@NE/
 ## 📜 Documentation
 - [FEATURES.md](./FEATURES.md) - Detailed feature breakdown.
 - [CONTRIBUTING.md](./CONTRIBUTING.md) - Guidelines for developers.
+## This webapp has been built entirely through Google AntiGravity IDE!!
