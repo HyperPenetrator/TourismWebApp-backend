@@ -11,6 +11,8 @@ import { ProfileView } from '@/components/profile/ProfileView';
 import { ComposeView } from '@/components/feed/ComposeView';
 import { LiveWeavingHUD } from '@/components/feed/LiveWeavingHUD';
 import DeepScanner from '@/components/feed/DeepScanner';
+import { MarketplaceFeed } from '@/components/marketplace/MarketplaceFeed';
+import { MarketplaceUpload } from '@/components/marketplace/MarketplaceUpload';
 import { useRecommendationEngine, Artisan, Experience } from '@/context/RecommendationEngineContext';
 
 export default function Home() {
@@ -19,7 +21,7 @@ export default function Home() {
   const [searchQuery, setSearchQuery] = React.useState('');
 
   React.useEffect(() => {
-    if (activeZone !== 'Search') {
+    if (activeZone !== 'Marketplace' && activeZone !== 'Search') {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setSearchQuery('');
     }
@@ -96,31 +98,10 @@ export default function Home() {
                   />
                 );
               })
-            ) : activeZone === 'Search' ? (
-              <div className="flex flex-col">
-                <HeaderSearch query={searchQuery} onQueryChange={setSearchQuery} />
-                <div className="mt-4 mb-4">
-                  <h3 className="text-xs font-bold text-slate-900 uppercase tracking-widest mb-4">Suggested Artisans</h3>
-                  <div className="flex flex-col gap-4">
-                    {recommendedItems
-                      .filter((i): i is Artisan => i.type === 'artisan')
-                      .slice(0, 2)
-                      .map((item) => (
-                        <ArtisanProfileCard key={item.id} artisan={item} />
-                      ))}
-                  </div>
-                </div>
-                <div className="mt-6 mb-4">
-                  <h3 className="text-xs font-bold text-slate-900 uppercase tracking-widest mb-4">Trending Experiences</h3>
-                  <div className="flex flex-col gap-4">
-                    {recommendedItems
-                      .filter((i): i is Experience => i.type === 'experience')
-                      .slice(0, 2)
-                      .map((item) => (
-                        <ExperienceCard key={item.id} experience={item} />
-                      ))}
-                  </div>
-                </div>
+            ) : activeZone === 'Marketplace' ? (
+              <div className="flex flex-col relative pb-20">
+                <MarketplaceFeed />
+                <MarketplaceUpload />
               </div>
             ) : activeZone === 'Profile' ? (
               <ProfileView />

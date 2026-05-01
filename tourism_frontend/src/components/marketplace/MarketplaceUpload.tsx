@@ -2,7 +2,7 @@
 
 import React, { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Upload, X, Plus, DollarSign, Tag as TagIcon } from 'lucide-react';
+import { Upload, X, Plus, IndianRupee, Tag as TagIcon } from 'lucide-react';
 
 export const MarketplaceUpload = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -98,11 +98,11 @@ export const MarketplaceUpload = () => {
               className="relative w-full max-w-lg glass-panel p-6 rounded-3xl shadow-2xl border border-white/10"
             >
               <div className="flex justify-between items-center mb-6">
-                <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                <h2 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
                   <Upload size={20} className="text-tactical-emerald" />
                   Upload Heritage Item
                 </h2>
-                <button onClick={() => setIsOpen(false)} className="text-white/60 hover:text-white">
+                <button onClick={() => setIsOpen(false)} className="text-slate-400 dark:text-white/60 hover:text-slate-900 dark:hover:text-white">
                   <X size={24} />
                 </button>
               </div>
@@ -111,7 +111,7 @@ export const MarketplaceUpload = () => {
                 {/* Image Upload Zone */}
                 <div 
                   className={`relative h-48 rounded-2xl border-2 border-dashed transition-colors flex flex-col items-center justify-center overflow-hidden ${
-                    preview ? 'border-tactical-emerald' : 'border-white/20 hover:border-tactical-emerald/50'
+                    preview ? 'border-tactical-emerald' : 'border-slate-200 dark:border-white/20 hover:border-tactical-emerald/50'
                   }`}
                 >
                   {preview ? (
@@ -127,8 +127,8 @@ export const MarketplaceUpload = () => {
                     </>
                   ) : (
                     <label className="cursor-pointer flex flex-col items-center">
-                      <Upload size={32} className="text-white/40 mb-2" />
-                      <span className="text-sm text-white/60">Drag & drop or click to upload</span>
+                      <Upload size={32} className="text-slate-300 dark:text-white/40 mb-2" />
+                      <span className="text-sm text-slate-500 dark:text-white/60">Drag & drop or click to upload</span>
                       <input type="file" className="hidden" onChange={handleFileChange} accept="image/*" />
                     </label>
                   )}
@@ -138,7 +138,7 @@ export const MarketplaceUpload = () => {
                 <div>
                   <textarea
                     placeholder="Describe this treasure..."
-                    className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white placeholder:text-white/30 focus:outline-none focus:border-tactical-emerald/50 min-h-[100px]"
+                    className="w-full bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl p-3 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-white/30 focus:outline-none focus:border-tactical-emerald/50 min-h-[100px]"
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     required
@@ -148,22 +148,22 @@ export const MarketplaceUpload = () => {
                 {/* Price & Tags */}
                 <div className="flex gap-4">
                   <div className="relative flex-1">
-                    <DollarSign size={16} className="absolute left-3 top-3.5 text-white/40" />
+                    <IndianRupee size={16} className="absolute left-3 top-3.5 text-slate-400 dark:text-white/40" />
                     <input
                       type="number"
                       placeholder="Price"
-                      className="w-full bg-white/5 border border-white/10 rounded-xl py-2.5 pl-9 pr-3 text-white placeholder:text-white/30 focus:outline-none focus:border-tactical-emerald/50"
+                      className="w-full bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl py-2.5 pl-9 pr-3 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-white/30 focus:outline-none focus:border-tactical-emerald/50"
                       value={price}
                       onChange={(e) => setPrice(e.target.value)}
                       required
                     />
                   </div>
                   <div className="relative flex-[2]">
-                    <TagIcon size={16} className="absolute left-3 top-3.5 text-white/40" />
+                    <TagIcon size={16} className="absolute left-3 top-3.5 text-slate-400 dark:text-white/40" />
                     <input
                       type="text"
                       placeholder="Add tags (Enter)"
-                      className="w-full bg-white/5 border border-white/10 rounded-xl py-2.5 pl-9 pr-3 text-white placeholder:text-white/30 focus:outline-none focus:border-tactical-emerald/50"
+                      className="w-full bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl py-2.5 pl-9 pr-3 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-white/30 focus:outline-none focus:border-tactical-emerald/50"
                       value={tagInput}
                       onChange={(e) => setTagInput(e.target.value)}
                       onKeyDown={handleAddTag}

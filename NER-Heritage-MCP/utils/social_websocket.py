@@ -201,27 +201,47 @@ async def weaving_websocket(websocket: WebSocket, artisan_id: str):
 # ─── Marketplace Feed Logic ─────────────────────────────────────────────────
 
 MARKETPLACE_SAMPLE_ITEMS = [
-    {"description": "Hand-carved Bamboo Flute — Signature Series", "list_price": 45, "tags": ["Bamboo", "Music"]},
-    {"description": "Organic Assam Silk Scarf — Hand-dyed", "list_price": 85, "tags": ["Silk", "Textiles"]},
-    {"description": "Traditional Naga Warrior Spear — Ceremonial", "list_price": 250, "tags": ["Heritage", "Art"]},
-    {"description": "Majuli Clay Pottery Set — Hand-coiled", "list_price": 120, "tags": ["Pottery", "Majuli"]},
+    {
+        "description": "Horn of Buffalo", 
+        "list_price": 2450, 
+        "tags": ["ethnic", "assam"],
+        "image_url": "http://localhost:3000/images/1.jpeg"
+    },
+    {
+        "description": "Hand-Made mask", 
+        "list_price": 1850, 
+        "tags": ["handmade", "mask"],
+        "image_url": "http://localhost:3000/images/2.jpeg"
+    },
+    {
+        "description": "Muga Dress", 
+        "list_price": 5500, 
+        "tags": ["woven", "assam"],
+        "image_url": "http://localhost:3000/images/3.jpeg"
+    },
 ]
 
 # Create a background task to simulate activity
 async def simulate_marketplace_activity():
-    while True:
-        await asyncio.sleep(random.uniform(15, 30))  # Less frequent to emphasize user uploads
-        if feed_manager.active_connections:
-            sample = random.choice(MARKETPLACE_SAMPLE_ITEMS)
-            new_item = {
-                "id": f"item_{random.randint(1000, 9999)}",
-                "image_url": f"https://picsum.photos/seed/{random.randint(1, 1000)}/800/800",
-                "description": sample["description"],
-                "list_price": sample["list_price"],
-                "tags": sample["tags"],
-                "timestamp": datetime.now(timezone.utc).isoformat()
-            }
-            await feed_manager.broadcast(new_item)
+    # Wait for the first client to connect before starting the sequence
+    while not feed_manager.active_connections:
+        await asyncio.sleep(1)
+    
+    # Send each sample item exactly once
+    for sample in MARKETPLACE_SAMPLE_ITEMS:
+        await asyncio.sleep(5)  # Wait 5 seconds between items
+        new_item = {
+            "id": f"item_{random.randint(1000, 9999)}",
+            "image_url": sample.get("image_url"),
+            "description": sample["description"],
+            "list_price": sample["list_price"],
+            "tags": sample["tags"],
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+        await feed_manager.broadcast(new_item)
+    
+    # Simulation ends here. No more items until user uploads via /upload.
+    logger.info("[MARKETPLACE] Initial sequence completed. Simulation stopped.")
 
 @app.on_event("startup")
 async def startup_event():

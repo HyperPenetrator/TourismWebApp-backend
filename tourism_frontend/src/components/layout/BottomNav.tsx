@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Home, Search, Plus, Bell, User } from 'lucide-react';
+import { Home, Store, Plus, Bell, User } from 'lucide-react';
 
 export const BottomNav = ({ 
   activeZone, 
@@ -20,10 +20,10 @@ export const BottomNav = ({
           onClick={() => onZoneChange('Home')}
         />
         <NavItem 
-          icon={<Search size={22} strokeWidth={2} />} 
-          label="Search" 
-          active={activeZone === 'Search'} 
-          onClick={() => onZoneChange('Search')}
+          icon={<Store size={22} strokeWidth={2} />} 
+          label="Marketplace" 
+          active={activeZone === 'Marketplace'} 
+          onClick={() => onZoneChange('Marketplace')}
         />
         
         {/* Flush Center Action Node */}

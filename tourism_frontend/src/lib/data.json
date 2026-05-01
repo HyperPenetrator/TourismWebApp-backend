@@ -2,95 +2,83 @@
   "artisans": [
     {
       "id": "a1",
-      "name": "Kiran Devi",
-      "category": "handloom",
-      "location": "Imphal, Manipur",
-      "bio": "Master weaver of traditional Meitei silk sarees with 30 years of experience.",
+      "name": "Hem Chandra Goswami",
+      "category": "heritage",
+      "location": "Majuli, Assam",
+      "bio": "Expert in traditional mask making and buffalo horn crafting from the Satras of Majuli.",
       "images": [
-        "https://images.unsplash.com/photo-1621360841013-c7683c659ec6?q=80&w=1000",
-        "https://images.unsplash.com/photo-1590602847861-f357a9332bbc?q=80&w=1000",
-        "https://images.unsplash.com/photo-1580927752452-89d86da3fa0a?q=80&w=1000"
+        "/images/1.jpeg"
       ],
       "isVerified": true,
       "rating": 4.9,
-      "experienceCount": 12
+      "experienceCount": 15
     },
     {
       "id": "a2",
-      "name": "Tenzing Namgyal",
-      "category": "bamboo",
-      "location": "Gangtok, Sikkim",
-      "bio": "Specializes in sustainable bamboo architecture and home decor.",
+      "name": "Pratima Devi",
+      "category": "handmade",
+      "location": "Sivasagar, Assam",
+      "bio": "Renowned artisan specializing in handmade masks for traditional Bhaona performances.",
       "images": [
-        "https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=1000",
-        "https://images.unsplash.com/photo-1596464716127-f2a82984de30?q=80&w=1000",
-        "https://images.unsplash.com/photo-1582510003544-4d00b7f74220?q=80&w=1000"
+        "/images/2.jpeg"
       ],
       "isVerified": true,
       "rating": 4.8,
-      "experienceCount": 8
+      "experienceCount": 9
     },
     {
       "id": "a3",
-      "name": "Lakhimi Baruah",
-      "category": "pottery",
-      "location": "Majuli, Assam",
-      "bio": "Preserving the ancient art of Salmora pottery on the world's largest river island.",
+      "name": "Bina Das",
+      "category": "handloom",
+      "location": "Sualkuchi, Assam",
+      "bio": "Master weaver of Muga Silk, the golden silk of Assam, with over 20 years of experience.",
       "images": [
-        "https://images.unsplash.com/photo-1590602847861-f357a9332bbc?q=80&w=1000",
-        "https://images.unsplash.com/photo-1621360841013-c7683c659ec6?q=80&w=1000",
-        "https://images.unsplash.com/photo-1582510003544-4d00b7f74220?q=80&w=1000"
+        "/images/3.jpeg"
       ],
       "isVerified": true,
       "rating": 4.7,
-      "experienceCount": 5
+      "experienceCount": 11
     }
   ],
   "experiences": [
     {
       "id": "e1",
       "artisanId": "a1",
-      "title": "Moirang Phee Weaving Masterclass",
+      "title": "Horn of Buffalo Crafting Session",
       "category": "Ethnic",
-      "price": 1200,
-      "duration": "4 hours",
+      "price": 2450,
+      "duration": "5 hours",
       "images": [
-        "https://images.unsplash.com/photo-1580927752452-89d86da3fa0a?q=80&w=1000",
-        "https://images.unsplash.com/photo-1621360841013-c7683c659ec6?q=80&w=1000",
-        "https://images.unsplash.com/photo-1590602847861-f357a9332bbc?q=80&w=1000"
+        "/images/1.jpeg"
       ],
-      "description": "Learn the intricate 'Moirang Phee' pattern from a national award-winning weaver.",
-      "tags": ["Handloom", "Cultural", "Manipur"]
+      "description": "Witness the transformation of raw buffalo horn into beautiful heritage artifacts.",
+      "tags": ["ethnic", "assam", "horn"]
     },
     {
       "id": "e2",
       "artisanId": "a2",
-      "title": "Bamboo Crafting Workshop",
-      "category": "Budget",
-      "price": 850,
+      "title": "Traditional Mask Making Workshop",
+      "category": "Handmade",
+      "price": 1850,
       "duration": "3 hours",
       "images": [
-        "https://images.unsplash.com/photo-1596464716127-f2a82984de30?q=80&w=1000",
-        "https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=1000",
-        "https://images.unsplash.com/photo-1580927752452-89d86da3fa0a?q=80&w=1000"
+        "/images/2.jpeg"
       ],
-      "description": "Create your own sustainable kitchenware using local bamboo varieties.",
-      "tags": ["Eco-friendly", "Workshop", "Sikkim"]
+      "description": "Learn the ancient art of mask making using bamboo, cloth, and clay.",
+      "tags": ["handmade", "mask", "assam"]
     },
     {
       "id": "e3",
       "artisanId": "a3",
-      "title": "Majuli River Island Pottery Tour",
-      "category": "Trending",
-      "price": 1500,
+      "title": "Muga Dress Weaving Experience",
+      "category": "Handloom",
+      "price": 5500,
       "duration": "Full Day",
       "images": [
-        "https://images.unsplash.com/photo-1582510003544-4d00b7f74220?q=80&w=1000",
-        "https://images.unsplash.com/photo-1590602847861-f357a9332bbc?q=80&w=1000",
-        "https://images.unsplash.com/photo-1621360841013-c7683c659ec6?q=80&w=1000"
+        "/images/3.jpeg"
       ],
-      "description": "A deep dive into the lives of the Mising tribe and their relationship with clay.",
-      "tags": ["Adventure", "Pottery", "Majuli"]
+      "description": "A deep dive into the world of Muga silk weaving in the silk village of Sualkuchi.",
+      "tags": ["woven", "assam", "silk"]
     }
   ],
   "categories": [
