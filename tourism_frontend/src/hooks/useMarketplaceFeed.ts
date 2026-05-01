@@ -11,7 +11,7 @@ export interface MarketplaceItem {
 }
 
 
-export const useMarketplaceWebSocket = (url: string) => {
+export const useMarketplaceFeedWS = (url: string) => {
   const [newItem, setNewItem] = useState<MarketplaceItem | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const socketRef = useRef<WebSocket | null>(null);
