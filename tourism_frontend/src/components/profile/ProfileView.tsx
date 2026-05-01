@@ -92,7 +92,7 @@ const ProfileMenuItem = ({
         ${isDanger ? 'text-red-500' : 'text-tactical-emerald dark:text-slate-500 transition-all duration-300 group-hover:scale-110'}
         ${!isDanger && 'drop-shadow-[0_0_8px_rgba(16,185,129,0.2)]'}
       `}>
-        {React.cloneElement(icon as React.ReactElement, { size: 22, strokeWidth: 2.5 })}
+        {React.isValidElement(icon) && React.cloneElement(icon as React.ReactElement<any>, { size: 22, strokeWidth: 2.5 })}
       </div>
       <span className="text-[16px] font-bold tracking-tight">{label}</span>
     </div>
