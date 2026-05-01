@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
-import { useMarketplaceWebSocket, MarketplaceItem } from '@/hooks/useMarketplaceWebSocket';
+import { useMarketplaceWebSocket, MarketplaceItem } from '@/hooks/useMarketplaceFeed';
 import { IndianRupee, Tag, Clock } from 'lucide-react';
 
 interface LiveMarketplaceFeedProps {
