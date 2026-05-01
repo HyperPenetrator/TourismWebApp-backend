@@ -53,10 +53,10 @@ export const ProfileView = () => {
 
       {/* Menu Options */}
       <div className="space-y-3">
-        <ProfileMenuItem icon={<Star size={18} />} label="Saved Experiences" count="5" />
-        <ProfileMenuItem icon={<Shield size={18} />} label="Security Protocol" />
-        <ProfileMenuItem icon={<Settings size={18} />} label="Interface Settings" />
-        <ProfileMenuItem icon={<LogOut size={18} />} label="Decommission Session" isDanger />
+        <ProfileMenuItem icon={Star} label="Saved Experiences" count="5" />
+        <ProfileMenuItem icon={Shield} label="Security Protocol" />
+        <ProfileMenuItem icon={Settings} label="Interface Settings" />
+        <ProfileMenuItem icon={LogOut} label="Decommission Session" isDanger />
       </div>
 
       {/* Decorative Spine Line (Matches the design language) */}
@@ -69,12 +69,12 @@ export const ProfileView = () => {
 };
 
 const ProfileMenuItem = ({ 
-  icon, 
+  icon: Icon, 
   label, 
   count, 
   isDanger = false 
 }: { 
-  icon: React.ReactNode; 
+  icon: React.ElementType; 
   label: string; 
   count?: string;
   isDanger?: boolean;
@@ -92,7 +92,7 @@ const ProfileMenuItem = ({
         ${isDanger ? 'text-red-500' : 'text-tactical-emerald dark:text-slate-500 transition-all duration-300 group-hover:scale-110'}
         ${!isDanger && 'drop-shadow-[0_0_8px_rgba(16,185,129,0.2)]'}
       `}>
-        {React.isValidElement(icon) && React.cloneElement(icon as React.ReactElement<any>, { size: 22, strokeWidth: 2.5 })}
+        <Icon size={22} strokeWidth={2.5} />
       </div>
       <span className="text-[16px] font-bold tracking-tight">{label}</span>
     </div>
