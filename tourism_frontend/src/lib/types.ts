@@ -20,7 +20,7 @@ export interface MarketplaceItem {
   description: string;
   price: number;
   list_price?: number;
-  image_url: string;
+  image_url?: string;
   imageUrl?: string;
   tags: string[];
   timestamp?: number | string;
