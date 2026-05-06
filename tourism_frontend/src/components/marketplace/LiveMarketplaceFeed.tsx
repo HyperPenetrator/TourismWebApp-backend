@@ -37,7 +37,7 @@ const DUMMY_ITEMS: MarketplaceItem[] = [
 export const LiveMarketplaceFeed: React.FC<LiveMarketplaceFeedProps> = ({ 
   initialItems = DUMMY_ITEMS, 
   sseUrl = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/sse/marketplace` 
-) => {
+}) => {
   const [items, setItems] = useState<MarketplaceItem[]>(initialItems);
   const { newItem, isConnected, mockPushItem } = useMarketplaceFeedSSE(sseUrl);
 
