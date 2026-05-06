@@ -95,7 +95,7 @@ export const ProfileView = () => {
         </form>
 
         <button 
-          onClick={() => { setIsLoginView(!isLoginView); setError(''); }}
+          onClick={() => { setIsLoginView(!isLoginView); }}
           className="mt-6 text-sm text-slate-500 hover:text-tactical-emerald font-medium transition-colors"
         >
           {isLoginView ? 'Need an identity? Enlist here.' : 'Already registered? Access terminal.'}
