@@ -13,43 +13,103 @@ interface MarketplaceItem {
   timestamp: string;
 }
 
+import { useMarketplaceFeedSSE } from '@/hooks/useMarketplaceFeedSSE';
+import { usePersonalNotificationsSSE } from '@/hooks/usePersonalNotificationsSSE';
+import { useAuth } from '@/context/AuthContext';
+
 export const MarketplaceFeed = () => {
   const [items, setItems] = useState<MarketplaceItem[]>([]);
-  const [isConnected, setIsConnected] = useState(false);
   const [securedItems, setSecuredItems] = useState<Set<string>>(new Set());
+  const { token, isAuthenticated } = useAuth();
 
-  const handleSecure = (id: string) => {
-    setSecuredItems(prev => new Set(prev).add(id));
-  };
+  const sseUrl = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/sse/marketplace`;
+  const { newItem, isConnected } = useMarketplaceFeedSSE(sseUrl);
+  const { notification: authorNotification, clearNotification } = usePersonalNotificationsSSE();
+
+  const [notification, setNotification] = useState<string | null>(null);
 
   useEffect(() => {
-    // Establish WebSocket connection
-    const wsBaseUrl = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8001';
-    const socket = new WebSocket(`${wsBaseUrl}/ws/feed`);
+    if (authorNotification) {
+      setNotification(`🎉 ${authorNotification.message}`);
+      setTimeout(() => {
+        setNotification(null);
+        clearNotification();
+      }, 5000);
+    }
+  }, [authorNotification, clearNotification]);
 
-    socket.onopen = () => {
-      console.log('Connected to Marketplace Live Feed');
-      setIsConnected(true);
-    };
+  const handleSecure = async (id: string) => {
+    if (!isAuthenticated || !token) {
+      alert("Please login to secure an item.");
+      return;
+    }
+    
+    setSecuredItems(prev => new Set(prev).add(id));
+    setNotification('Order placed! Notifying Author...');
+    
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/marketplace/secure-item/${id}`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      if (!response.ok) throw new Error("Failed to place order");
+      
+      setNotification('Order placed successfully!');
+      setTimeout(() => setNotification(null), 3000);
+    } catch (error) {
+      setNotification('Failed to notify author.');
+      setTimeout(() => setNotification(null), 3000);
+    }
+  };
 
-    socket.onmessage = (event) => {
-      const newItem: MarketplaceItem = JSON.parse(event.data);
-      // Prepend new item to the top of the feed
-      setItems(prevItems => [newItem, ...prevItems]);
-    };
-
-    socket.onclose = () => {
-      console.log('Disconnected from Marketplace Live Feed');
-      setIsConnected(false);
-    };
-
-    return () => {
-      socket.close();
-    };
+  // Hydrate with historical items on mount
+  useEffect(() => {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+    fetch(`${apiUrl}/api/marketplace/items`)
+      .then((r) => r.json())
+      .then((data: any[]) => {
+        const mapped = data.map((item) => ({
+          id: String(item.id),
+          image_url: item.image_url,
+          description: item.description,
+          list_price: item.list_price ?? item.price ?? 0,
+          tags: item.tags || [],
+          timestamp: item.created_at || new Date().toISOString(),
+        }));
+        setItems(mapped);
+      })
+      .catch((e) => console.error('[MarketplaceFeed] Failed to load history:', e));
   }, []);
 
+  useEffect(() => {
+    if (newItem) {
+      // Prepend new item to the top of the feed
+      setItems(prevItems => {
+        if (prevItems.some(i => i.id === newItem.id)) return prevItems;
+        return [newItem, ...prevItems];
+      });
+    }
+  }, [newItem]);
+
   return (
-    <div className="w-full">
+    <div className="w-full relative">
+      {/* Toast Notification */}
+      <AnimatePresence>
+        {notification && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="fixed top-24 left-1/2 transform -translate-x-1/2 z-50 bg-tactical-emerald text-white px-6 py-3 rounded-full shadow-lg shadow-tactical-emerald/20 flex items-center gap-2 text-sm font-semibold border border-white/20 backdrop-blur-md"
+          >
+            <Check size={16} />
+            {notification}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <div className="flex items-center justify-between mb-8">
         <div>
           <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-1">Live Marketplace</h2>
@@ -86,7 +146,7 @@ export const MarketplaceFeed = () => {
                 {/* Image Container */}
                 <div className="relative aspect-square overflow-hidden">
                   <img 
-                    src={item.image_url} 
+                    src={item.image_url.startsWith('http') ? item.image_url : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}${item.image_url}`} 
                     alt="Marketplace Item" 
                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                   />

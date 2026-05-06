@@ -1,3 +1,12 @@
+---
+title: Spot Ne Backend
+emoji: 🏺
+colorFrom: indigo
+colorTo: gray
+sdk: docker
+pinned: false
+---
+
 # Heritage Threads | Social NER Platform
 
 A multi-user social application inspired by Threads, focused on cultural heritage and powered by Named Entity Recognition.

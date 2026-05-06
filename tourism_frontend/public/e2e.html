@@ -1,0 +1,27 @@
+<!doctype html>
+<html>
+  <head><title>Spot@NE End-to-End</title></head>
+  <body>
+    <h1>Spot@NE End-to-End</h1>
+    <div id="e2e-status">idle</div>
+    <script>
+      (async function(){
+        try {
+          const login = await fetch('http://localhost:8000/api/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username: 'test6', password: 'pass123' })
+          });
+          const data = await login.json();
+          const token = data.access_token; 
+          const ws = new WebSocket('ws://localhost:8000/ws/marketplace?token=' + token);
+          ws.onopen = () => { document.getElementById('e2e-status').textContent = 'ws.connected'; };
+          ws.onmessage = (evt) => { try { const m = JSON.parse(evt.data); if (m.type || m.event) { document.getElementById('e2e-status').textContent = 'ws.received'; } } catch(e) {} };
+          ws.onerror = () => { document.getElementById('e2e-status').textContent = 'ws.error'; };
+        } catch (e) {
+          document.getElementById('e2e-status').textContent = 'login.error';
+        }
+      })();
+    </script>
+  </body>
+</html>

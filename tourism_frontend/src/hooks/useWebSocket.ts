@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { useAuth } from '@/context/AuthContext';
 
 interface WebSocketOptions<T> {
   onMessage?: (data: T) => void;
@@ -16,6 +17,7 @@ export const useWebSocket = <T = any>(url: string, options: WebSocketOptions<T> 
   
   const socketRef = useRef<WebSocket | null>(null);
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const { token } = useAuth();
   
   // Use refs for callbacks to avoid unnecessary reconnections when callbacks change
   const callbacksRef = useRef(options);
@@ -30,7 +32,9 @@ export const useWebSocket = <T = any>(url: string, options: WebSocketOptions<T> 
     } = callbacksRef.current;
 
     try {
-      const ws = new WebSocket(url);
+      // Append token as query parameter for WebSocket auth
+      const wsUrl = token ? `${url}?token=${token}` : url;
+      const ws = new WebSocket(wsUrl);
       socketRef.current = ws;
 
       ws.onopen = () => {
@@ -69,7 +73,7 @@ export const useWebSocket = <T = any>(url: string, options: WebSocketOptions<T> 
     } catch (err) {
       console.error("WebSocket connection error:", err);
     }
-  }, [url]); // Only depend on url
+  }, [url, token]);
 
   useEffect(() => {
     connect();

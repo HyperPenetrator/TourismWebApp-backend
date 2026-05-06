@@ -13,12 +13,15 @@ import { LiveWeavingHUD } from '@/components/feed/LiveWeavingHUD';
 import DeepScanner from '@/components/feed/DeepScanner';
 import { MarketplaceFeed } from '@/components/marketplace/MarketplaceFeed';
 import { MarketplaceUpload } from '@/components/marketplace/MarketplaceUpload';
+import { MyUploads } from '@/components/marketplace/MyUploads';
+import { NotificationsHUD } from '@/components/notifications/NotificationsHUD';
 import { useRecommendationEngine, Artisan, Experience } from '@/context/RecommendationEngineContext';
 
 export default function Home() {
   const { recommendedItems, activeCategory } = useRecommendationEngine();
   const [activeZone, setActiveZone] = React.useState('Home');
   const [searchQuery, setSearchQuery] = React.useState('');
+  const [marketplaceTab, setMarketplaceTab] = React.useState<'feed' | 'my-uploads'>('feed');
 
   React.useEffect(() => {
     if (activeZone !== 'Marketplace' && activeZone !== 'Search') {
@@ -100,13 +103,38 @@ export default function Home() {
               })
             ) : activeZone === 'Marketplace' ? (
               <div className="flex flex-col relative pb-20">
-                <MarketplaceFeed />
+                {/* Marketplace Sub-tab Toggle */}
+                <div className="flex gap-2 mb-6">
+                  <button
+                    onClick={() => setMarketplaceTab('feed')}
+                    className={`px-4 py-1.5 rounded-full text-xs font-semibold border transition-all ${
+                      marketplaceTab === 'feed'
+                        ? 'bg-tactical-emerald text-white border-tactical-emerald'
+                        : 'border-slate-200 dark:border-white/10 text-slate-500 dark:text-white/50 hover:border-tactical-emerald/40'
+                    }`}
+                  >
+                    Live Feed
+                  </button>
+                  <button
+                    onClick={() => setMarketplaceTab('my-uploads')}
+                    className={`px-4 py-1.5 rounded-full text-xs font-semibold border transition-all ${
+                      marketplaceTab === 'my-uploads'
+                        ? 'bg-tactical-emerald text-white border-tactical-emerald'
+                        : 'border-slate-200 dark:border-white/10 text-slate-500 dark:text-white/50 hover:border-tactical-emerald/40'
+                    }`}
+                  >
+                    My Uploads
+                  </button>
+                </div>
+                {marketplaceTab === 'feed' ? <MarketplaceFeed /> : <MyUploads />}
                 <MarketplaceUpload />
               </div>
             ) : activeZone === 'Profile' ? (
               <ProfileView />
             ) : activeZone === 'Compose' ? (
               <ComposeView onPostComplete={() => setActiveZone('Home')} />
+            ) : activeZone === 'Notifications' ? (
+              <NotificationsHUD />
             ) : (
               <div className="flex flex-col items-center justify-center py-20 text-slate-400">
                 <div className="w-16 h-16 rounded-full border border-slate-200 dark:border-slate-800 flex items-center justify-center mb-4">

@@ -5,8 +5,9 @@ import random
 import base64
 from typing import Dict, Set, Optional
 from datetime import datetime, timezone
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Request
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Request, Query
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 import uvicorn
 
@@ -28,6 +29,7 @@ app.add_middleware(
 class FeedManager:
     def __init__(self):
         self.active_connections: Set[WebSocket] = set()
+        self.sse_queues: Set[asyncio.Queue] = set()
 
     async def connect(self, websocket: WebSocket):
         await websocket.accept()
@@ -38,7 +40,18 @@ class FeedManager:
         self.active_connections.discard(websocket)
         logger.info(f"[MARKETPLACE] Client disconnected. Total: {len(self.active_connections)}")
 
+    async def connect_sse(self) -> asyncio.Queue:
+        queue = asyncio.Queue()
+        self.sse_queues.add(queue)
+        logger.info(f"[MARKETPLACE] SSE Client connected. Total: {len(self.sse_queues)}")
+        return queue
+
+    def disconnect_sse(self, queue: asyncio.Queue):
+        self.sse_queues.discard(queue)
+        logger.info(f"[MARKETPLACE] SSE Client disconnected. Total: {len(self.sse_queues)}")
+
     async def broadcast(self, message: dict):
+        # Broadcast to WebSockets
         disconnected = set()
         for connection in self.active_connections:
             try:
@@ -47,6 +60,10 @@ class FeedManager:
                 disconnected.add(connection)
         for dead in disconnected:
             self.disconnect(dead)
+            
+        # Broadcast to SSE
+        for queue in self.sse_queues:
+            await queue.put(message)
 
 feed_manager = FeedManager()
 
@@ -96,21 +113,49 @@ async def upload_item(request: Request):
 class SocialManager:
     def __init__(self):
         self.active_connections: Dict[str, Set[WebSocket]] = {}
+        self.user_connections: Dict[str, Dict[int, WebSocket]] = {}  # post_id -> {user_id: ws}
+        self.sse_queues: Dict[str, Set[asyncio.Queue]] = {} # post_id -> {queues}
 
-    async def connect(self, websocket: WebSocket, post_id: str):
+    async def connect(self, websocket: WebSocket, post_id: str, user_id: int = None):
         await websocket.accept()
         if post_id not in self.active_connections:
             self.active_connections[post_id] = set()
         self.active_connections[post_id].add(websocket)
+        if user_id:
+            if post_id not in self.user_connections:
+                self.user_connections[post_id] = {}
+            self.user_connections[post_id][user_id] = websocket
+            websocket.state.user_id = user_id
         logger.info(f"[SOCIAL] Client connected to post '{post_id}'. Room size: {len(self.active_connections[post_id])}")
 
     def disconnect(self, websocket: WebSocket, post_id: str):
         if post_id in self.active_connections:
             self.active_connections[post_id].discard(websocket)
+            # Remove from user_connections if present
+            user_id = getattr(websocket.state, 'user_id', None)
+            if user_id and post_id in self.user_connections:
+                self.user_connections[post_id].pop(user_id, None)
             if not self.active_connections[post_id]:
                 del self.active_connections[post_id]
+                if post_id in self.user_connections:
+                    del self.user_connections[post_id]
+
+    async def connect_sse(self, post_id: str) -> asyncio.Queue:
+        queue = asyncio.Queue()
+        if post_id not in self.sse_queues:
+            self.sse_queues[post_id] = set()
+        self.sse_queues[post_id].add(queue)
+        logger.info(f"[SOCIAL] SSE Client connected to post '{post_id}'. Room size: {len(self.sse_queues[post_id])}")
+        return queue
+
+    def disconnect_sse(self, queue: asyncio.Queue, post_id: str):
+        if post_id in self.sse_queues:
+            self.sse_queues[post_id].discard(queue)
+            if not self.sse_queues[post_id]:
+                del self.sse_queues[post_id]
 
     async def broadcast_to_post(self, post_id: str, message: dict):
+        # Broadcast to WebSockets
         if post_id in self.active_connections:
             disconnected_sockets = set()
             for connection in self.active_connections[post_id]:
@@ -120,10 +165,17 @@ class SocialManager:
                     disconnected_sockets.add(connection)
             for dead_socket in disconnected_sockets:
                 self.disconnect(dead_socket, post_id)
+        
+        # Broadcast to SSE
+        if post_id in self.sse_queues:
+            for queue in self.sse_queues[post_id]:
+                await queue.put(message)
 
     def room_size(self, post_id: str) -> int:
         """Returns the number of active subscribers for a specific post."""
-        return len(self.active_connections.get(post_id, set()))
+        ws_size = len(self.active_connections.get(post_id, set()))
+        sse_size = len(self.sse_queues.get(post_id, set()))
+        return ws_size + sse_size
 
     def status_snapshot(self) -> dict:
         """Returns a diagnostic summary of all active rooms."""
@@ -198,6 +250,27 @@ async def weaving_websocket(websocket: WebSocket, artisan_id: str):
     except Exception as e:
         logger.error(f"[WEAVING] Error: {e}")
 
+
+
+@app.get("/sse/weaving/{artisan_id}")
+async def sse_weaving(request: Request, artisan_id: str):
+    """SSE endpoint for weaving telemetry."""
+    if artisan_id not in _weaving_sessions:
+        _weaving_sessions[artisan_id] = WeavingSession(artisan_id)
+    
+    async def event_generator():
+        try:
+            while True:
+                if await request.is_disconnected():
+                    break
+                payload = _weaving_sessions[artisan_id].advance()
+                yield f"data: {json.dumps(payload)}\n\n"
+                await asyncio.sleep(2.0)
+        except asyncio.CancelledError:
+            pass
+
+    return StreamingResponse(event_generator(), media_type="text/event-stream")
+
 # ─── Marketplace Feed Logic ─────────────────────────────────────────────────
 
 MARKETPLACE_SAMPLE_ITEMS = [
@@ -259,11 +332,60 @@ async def marketplace_websocket(websocket: WebSocket):
         logger.error(f"[MARKETPLACE] Error: {e}")
         feed_manager.disconnect(websocket)
 
+@app.get("/sse/feed")
+@app.get("/sse/marketplace")
+async def sse_marketplace_feed(request: Request):
+    """SSE endpoint for marketplace feed updates."""
+    async def event_generator():
+        queue = await feed_manager.connect_sse()
+        try:
+            while True:
+                if await request.is_disconnected():
+                    break
+                data = await queue.get()
+                yield f"data: {json.dumps(data)}\n\n"
+        finally:
+            feed_manager.disconnect_sse(queue)
+
+    return StreamingResponse(event_generator(), media_type="text/event-stream")
+
+@app.get("/sse/engagement/{post_id}")
+async def sse_engagement(request: Request, post_id: str):
+    """SSE endpoint for social engagement updates."""
+    async def event_generator():
+        queue = await engagement_manager.connect_sse(post_id)
+        try:
+            while True:
+                if await request.is_disconnected():
+                    break
+                data = await queue.get()
+                yield f"data: {json.dumps(data)}\n\n"
+        finally:
+            engagement_manager.disconnect_sse(queue, post_id)
+
+    return StreamingResponse(event_generator(), media_type="text/event-stream")
+
 # ─── Social Endpoints ───────────────────────────────────────────────────────
 
 @app.websocket("/ws/engagement/{post_id}")
-async def social_websocket(websocket: WebSocket, post_id: str):
-    await engagement_manager.connect(websocket, post_id)
+async def social_websocket(
+    websocket: WebSocket,
+    post_id: str,
+    token: str = Query(None)
+):
+    user_id = None
+    if token:
+        from auth import get_current_user_ws
+        from database import SessionLocal
+        db = SessionLocal()
+        try:
+            user = await get_current_user_ws(token, db)
+            if user:
+                user_id = user.id
+        finally:
+            db.close()
+
+    await engagement_manager.connect(websocket, post_id, user_id)
     try:
         while True:
             await websocket.receive_text()

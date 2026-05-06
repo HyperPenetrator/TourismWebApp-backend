@@ -2,18 +2,14 @@
 
 import React, { useEffect, useRef } from 'react';
 import { Activity, Clock, Layers, Radio, ShieldAlert } from 'lucide-react';
-import { useWebSocket } from '@/hooks/useWebSocket';
+import { useSSE } from '@/hooks/useSSE';
 import { HUDData } from '@/lib/types';
 
 export const LiveWeavingHUD = ({ artisanId = 'a1' }: { artisanId?: string }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   
-  const { data, isConnected } = useWebSocket<HUDData>(
-    `${process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8001'}/ws/weaving/${artisanId}`,
-    {
-      onConnect: () => console.log('HUD: Connection established'),
-      onDisconnect: () => console.log('HUD: Connection closed. Ensure backend is running.'),
-    }
+  const { data, isConnected } = useSSE<HUDData>(
+    `${process.env.NEXT_PUBLIC_SSE_URL || 'http://localhost:8001'}/sse/weaving/${artisanId}`
   );
 
   // Handle auto-playing video simulation

@@ -3,6 +3,7 @@
 import React, { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Upload, X, Plus, IndianRupee, Tag as TagIcon } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
 
 export const MarketplaceUpload = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -13,6 +14,7 @@ export const MarketplaceUpload = () => {
   const [tagInput, setTagInput] = useState('');
   const [tags, setTags] = useState<string[]>([]);
   const [isUploading, setIsUploading] = useState(false);
+  const { token, isAuthenticated } = useAuth();
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
@@ -42,17 +44,27 @@ export const MarketplaceUpload = () => {
     e.preventDefault();
     if (!file || !description || !price) return;
 
-    setIsUploading(true);
+    if (!token) {
+      console.error('No auth token available. Please log in.');
+      setIsUploading(false);
+      return;
+    }
+
+    console.log(`[Marketplace] Uploading item... Token exists: ${!!token}`);
+
     const formData = new FormData();
-    formData.append('file', file);
+    formData.append('image', file);
     formData.append('description', description);
     formData.append('price', price);
-    formData.append('tags', JSON.stringify(tags));
+    formData.append('tags', tags.join(','));
 
     try {
-      const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001';
-      const response = await fetch(`${apiBaseUrl}/upload`, {
+      const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+      const response = await fetch(`${apiBaseUrl}/api/marketplace/upload`, {
         method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
         body: formData,
       });
 
@@ -108,7 +120,24 @@ export const MarketplaceUpload = () => {
                 </button>
               </div>
 
-              <form onSubmit={handleSubmit} className="space-y-4">
+              {!isAuthenticated ? (
+                <div className="py-12 flex flex-col items-center justify-center text-center">
+                  <div className="w-16 h-16 bg-slate-100 dark:bg-white/10 rounded-full flex items-center justify-center mb-4">
+                    <Upload size={32} className="text-slate-400 dark:text-white/40" />
+                  </div>
+                  <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Authentication Required</h3>
+                  <p className="text-slate-500 dark:text-white/60 mb-6">
+                    Please log in to your account to publish items to the marketplace.
+                  </p>
+                  <button 
+                    onClick={() => setIsOpen(false)}
+                    className="px-6 py-2.5 bg-tactical-emerald text-white font-semibold rounded-xl hover:bg-emerald-600 transition-colors"
+                  >
+                    Close
+                  </button>
+                </div>
+              ) : (
+                <form onSubmit={handleSubmit} className="space-y-4">
                 {/* Image Upload Zone */}
                 <div 
                   className={`relative h-48 rounded-2xl border-2 border-dashed transition-colors flex flex-col items-center justify-center overflow-hidden ${
@@ -192,6 +221,7 @@ export const MarketplaceUpload = () => {
                   {isUploading ? 'Broadcasting to Feed...' : 'Publish to Marketplace'}
                 </button>
               </form>
+              )}
             </motion.div>
           </div>
         )}

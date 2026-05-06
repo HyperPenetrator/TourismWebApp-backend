@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
-import { useMarketplaceFeedWS, MarketplaceItem } from '@/hooks/useMarketplaceFeed';
+import { useMarketplaceFeedSSE, MarketplaceItem } from '@/hooks/useMarketplaceFeedSSE';
 import { IndianRupee, Tag, Clock } from 'lucide-react';
 
 interface LiveMarketplaceFeedProps {
@@ -36,10 +36,10 @@ const DUMMY_ITEMS: MarketplaceItem[] = [
 
 export const LiveMarketplaceFeed: React.FC<LiveMarketplaceFeedProps> = ({ 
   initialItems = DUMMY_ITEMS, 
-  wsUrl = `${process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8001'}/ws/marketplace` 
-}) => {
+  sseUrl = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/sse/marketplace` 
+) => {
   const [items, setItems] = useState<MarketplaceItem[]>(initialItems);
-  const { newItem, isConnected, mockPushItem } = useMarketplaceFeedWS(wsUrl);
+  const { newItem, isConnected, mockPushItem } = useMarketplaceFeedSSE(sseUrl);
 
   // When a new item arrives via WS, animate it into the top of the grid
   useEffect(() => {

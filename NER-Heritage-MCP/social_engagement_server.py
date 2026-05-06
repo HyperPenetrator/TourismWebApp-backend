@@ -30,7 +30,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 
-from utils.social_websocket import engagement_manager
+from utils.social_websocket import engagement_manager, feed_manager, WeavingSession, _weaving_sessions
 from social_engagement_mcp import log_engagement, EngagementInput, ActionType, set_broadcast_hook
 
 # ─── Logging ─────────────────────────────────────────────────────────────────
@@ -93,7 +93,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["http://localhost:3000"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -145,6 +145,75 @@ async def ws_engagement(websocket: WebSocket, post_id: str):
     except Exception as e:
         engagement_manager.disconnect(websocket, post_id)
         log.warning(f"Client dropped from post '{post_id}': {e}")
+
+from fastapi import Request
+from fastapi.responses import StreamingResponse
+
+@app.get("/sse/engagement/{post_id}")
+async def sse_engagement(request: Request, post_id: str):
+    """
+    Real-time engagement feed for a specific post via SSE.
+    """
+    async def event_generator():
+        queue = await engagement_manager.connect_sse(post_id)
+        
+        # Send welcome event
+        welcome = {
+            "type": "CONNECTED",
+            "data": {
+                "post_id": post_id,
+                "message": f"Subscribed to engagement events for post '{post_id}' via SSE.",
+                "room_size": engagement_manager.room_size(post_id),
+            },
+        }
+        yield f"data: {json.dumps(welcome)}\n\n"
+        
+        try:
+            while True:
+                if await request.is_disconnected():
+                    break
+                data = await queue.get()
+                yield f"data: {json.dumps(data)}\n\n"
+        finally:
+            engagement_manager.disconnect_sse(queue, post_id)
+
+    return StreamingResponse(event_generator(), media_type="text/event-stream")
+
+@app.get("/sse/weaving/{artisan_id}")
+async def sse_weaving(request: Request, artisan_id: str):
+    """SSE endpoint for weaving telemetry."""
+    if artisan_id not in _weaving_sessions:
+        _weaving_sessions[artisan_id] = WeavingSession(artisan_id)
+    
+    async def event_generator():
+        try:
+            while True:
+                if await request.is_disconnected():
+                    break
+                payload = _weaving_sessions[artisan_id].advance()
+                yield f"data: {json.dumps(payload)}\n\n"
+                await asyncio.sleep(2.0)
+        except asyncio.CancelledError:
+            pass
+
+    return StreamingResponse(event_generator(), media_type="text/event-stream")
+
+@app.get("/sse/marketplace")
+@app.get("/sse/feed")
+async def sse_marketplace_feed(request: Request):
+    """SSE endpoint for marketplace feed updates."""
+    async def event_generator():
+        queue = await feed_manager.connect_sse()
+        try:
+            while True:
+                if await request.is_disconnected():
+                    break
+                data = await queue.get()
+                yield f"data: {json.dumps(data)}\n\n"
+        finally:
+            feed_manager.disconnect_sse(queue)
+
+    return StreamingResponse(event_generator(), media_type="text/event-stream")
 
 
 # ─── REST Endpoint — Engage ──────────────────────────────────────────────────

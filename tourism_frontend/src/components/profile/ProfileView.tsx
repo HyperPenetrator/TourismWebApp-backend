@@ -1,10 +1,109 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
-import { Settings, Edit, User, MapPin, Shield, Star, LogOut } from 'lucide-react';
+import { Settings, Edit, User, MapPin, Shield, Star, LogOut, Mail, Lock } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
 
 export const ProfileView = () => {
+  const { user, isAuthenticated, login, register, logout, loading, error } = useAuth();
+  const [isLoginView, setIsLoginView] = useState(true);
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState('');
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (isLoginView) {
+      await login(username, password);
+    } else {
+      await register(username, email, password);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 text-slate-400">
+        <div className="w-16 h-16 rounded-full border border-slate-200 dark:border-slate-800 flex items-center justify-center mb-4">
+          <div className="w-8 h-8 rounded-full bg-tactical-emerald/10 animate-pulse"></div>
+        </div>
+        <p className="text-sm font-medium">Authenticating Protocol...</p>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <div className="flex flex-col items-center justify-center py-10 px-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
+        <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-tactical-emerald/20 to-tactical-blue/20 border border-tactical-emerald/30 flex items-center justify-center mb-6">
+          <Shield size={40} className="text-tactical-emerald" />
+        </div>
+        <h2 className="text-2xl font-black tracking-tight text-foreground mb-2">
+          {isLoginView ? 'Access Terminal' : 'Enlist Agent'}
+        </h2>
+        <p className="text-sm text-slate-500 dark:text-slate-400 mb-8 text-center max-w-xs">
+          {isLoginView ? 'Provide credentials to access your heritage dossier.' : 'Register a new identity on the Spot@NE network.'}
+        </p>
+
+        <form onSubmit={handleSubmit} className="w-full max-w-sm space-y-4">
+          <div className="relative">
+            <User size={18} className="absolute left-3 top-3.5 text-slate-400" />
+            <input 
+              type="text" 
+              placeholder="Username" 
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl py-3 pl-10 pr-4 text-foreground focus:border-tactical-emerald focus:ring-1 focus:ring-tactical-emerald outline-none transition-all"
+              required
+            />
+          </div>
+          
+          {!isLoginView && (
+            <div className="relative">
+              <Mail size={18} className="absolute left-3 top-3.5 text-slate-400" />
+              <input 
+                type="email" 
+                placeholder="Email Address" 
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl py-3 pl-10 pr-4 text-foreground focus:border-tactical-emerald focus:ring-1 focus:ring-tactical-emerald outline-none transition-all"
+                required
+              />
+            </div>
+          )}
+
+          <div className="relative">
+            <Lock size={18} className="absolute left-3 top-3.5 text-slate-400" />
+            <input 
+              type="password" 
+              placeholder="Passphrase" 
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl py-3 pl-10 pr-4 text-foreground focus:border-tactical-emerald focus:ring-1 focus:ring-tactical-emerald outline-none transition-all"
+              required
+            />
+          </div>
+
+          {error && <div className="text-red-500 text-sm text-center font-medium bg-red-500/10 py-2 rounded-lg">{error}</div>}
+
+          <button 
+            type="submit" 
+            className="w-full py-3.5 bg-tactical-emerald text-white font-bold rounded-xl shadow-[0_4px_14px_rgba(16,185,129,0.4)] hover:shadow-[0_6px_20px_rgba(16,185,129,0.6)] hover:-translate-y-0.5 transition-all"
+          >
+            {isLoginView ? 'Execute Login' : 'Initialize Registration'}
+          </button>
+        </form>
+
+        <button 
+          onClick={() => { setIsLoginView(!isLoginView); setError(''); }}
+          className="mt-6 text-sm text-slate-500 hover:text-tactical-emerald font-medium transition-colors"
+        >
+          {isLoginView ? 'Need an identity? Enlist here.' : 'Already registered? Access terminal.'}
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col animate-in fade-in slide-in-from-bottom-4 duration-500">
       {/* Header Section */}
@@ -15,12 +114,12 @@ export const ProfileView = () => {
             <div className="absolute bottom-0 right-0 w-6 h-6 bg-tactical-emerald border-4 border-background rounded-full"></div>
           </div>
           <div>
-            <h1 className="text-xl font-black tracking-tight text-foreground">Command_User_01</h1>
+            <h1 className="text-xl font-black tracking-tight text-foreground">{user?.username}</h1>
             <div className="flex items-center gap-1.5 text-xs font-medium text-slate-500 mt-1">
               <MapPin size={12} />
               <span>Assam, India</span>
               <span className="mx-1">•</span>
-              <span className="text-tactical-emerald">Explorer Class</span>
+              <span className="text-tactical-emerald">{user?.role === 'artisan' ? 'Artisan Class' : 'Explorer Class'}</span>
             </div>
           </div>
         </div>
@@ -51,12 +150,13 @@ export const ProfileView = () => {
         </div>
       </div>
 
-      {/* Menu Options */}
       <div className="space-y-3">
         <ProfileMenuItem icon={Star} label="Saved Experiences" count="5" />
         <ProfileMenuItem icon={Shield} label="Security Protocol" />
         <ProfileMenuItem icon={Settings} label="Interface Settings" />
-        <ProfileMenuItem icon={LogOut} label="Decommission Session" isDanger />
+        <div onClick={logout}>
+          <ProfileMenuItem icon={LogOut} label="Decommission Session" isDanger />
+        </div>
       </div>
 
       {/* Decorative Spine Line (Matches the design language) */}
