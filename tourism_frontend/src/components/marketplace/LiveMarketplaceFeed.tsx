@@ -152,7 +152,7 @@ export const LiveMarketplaceFeed: React.FC<LiveMarketplaceFeedProps> = ({
                           height={24} 
                         />
                     </div>
-                    <span className="text-xs text-white/60 font-mono tracking-tight">{item.artisanId.toUpperCase()}</span>
+                    <span className="text-xs text-white/60 font-mono tracking-tight">{item.artisanId?.toUpperCase() || 'ANONYMOUS'}</span>
                   </div>
                   <div className="flex items-center gap-1 text-white/40">
                     <Clock className="h-3 w-3" />
