@@ -120,10 +120,13 @@ export const RecommendationProvider = ({ children }: { children: ReactNode }) =>
       const weightA = weightMap[a.category] || 0;
       const weightB = weightMap[b.category] || 0;
       
-      const activeBoostA = a.category === activeCategory ? 10 : 0;
-      const activeBoostB = b.category === activeCategory ? 10 : 0;
+      const activeBoostA = a.category === activeCategory ? 20 : 0;
+      const activeBoostB = b.category === activeCategory ? 20 : 0;
 
-      return (weightB + activeBoostB) - (weightA + activeBoostA);
+      const verifiedBoostA = a.type === 'artisan' && (a as Artisan).isVerified ? 50 : 0;
+      const verifiedBoostB = b.type === 'artisan' && (b as Artisan).isVerified ? 50 : 0;
+
+      return (weightB + activeBoostB + verifiedBoostB) - (weightA + activeBoostA + verifiedBoostA);
     });
   }, [activeCategory, weightMap]);
 

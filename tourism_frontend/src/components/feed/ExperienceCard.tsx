@@ -1,7 +1,7 @@
 'use client';
 
-import React from 'react';
-import { Heart, MessageCircle, Repeat2, Share, Clock, Tag } from 'lucide-react';
+import React, { useState } from 'react';
+import { Heart, MessageCircle, Repeat2, Share, Clock, Tag, Zap, CheckCircle2 } from 'lucide-react';
 import { ExperienceCarousel } from '../ui/ExperienceCarousel';
 
 import { Experience } from '@/context/RecommendationEngineContext';
@@ -11,6 +11,16 @@ interface ExperienceCardProps {
 }
 
 export const ExperienceCard = ({ experience }: ExperienceCardProps) => {
+  const [bookingState, setBookingState] = useState<'idle' | 'scanning' | 'booked'>('idle');
+
+  const handleBooking = async () => {
+    if (bookingState !== 'idle') return;
+    setBookingState('scanning');
+    // Simulate scanning / API delay
+    await new Promise((r) => setTimeout(r, 1800));
+    setBookingState('booked');
+  };
+
   return (
     <div className="relative grid grid-cols-[70px_1fr] group">
       {/* The Spine Column */}
@@ -55,6 +65,36 @@ export const ExperienceCard = ({ experience }: ExperienceCardProps) => {
         <div className="mb-4">
           <ExperienceCarousel images={experience.images} />
         </div>
+
+        {/* Initiate Booking — with tactical scanning animation */}
+        <button
+          onClick={handleBooking}
+          disabled={bookingState !== 'idle'}
+          className={`relative w-full mb-4 overflow-hidden rounded-xl py-2.5 text-sm font-bold tracking-wide transition-all duration-300 border flex items-center justify-center gap-2 ${
+            bookingState === 'booked'
+              ? 'bg-tactical-emerald/10 border-tactical-emerald text-tactical-emerald cursor-default'
+              : bookingState === 'scanning'
+              ? 'bg-slate-900 border-tactical-emerald/50 text-tactical-emerald/70 cursor-wait'
+              : 'bg-background border-slate-200 dark:border-slate-800 text-foreground hover:border-tactical-emerald/50 hover:bg-tactical-emerald/5'
+          }`}
+        >
+          {/* Scanning sweep line */}
+          {bookingState === 'scanning' && (
+            <span
+              className="absolute inset-0 pointer-events-none"
+              aria-hidden="true"
+            >
+              <span className="absolute top-0 left-0 h-full w-[2px] bg-tactical-emerald/60 shadow-[0_0_8px_2px_rgba(16,185,129,0.5)] animate-[scanline_1.2s_linear_infinite]" />
+            </span>
+          )}
+          {bookingState === 'booked' ? (
+            <><CheckCircle2 size={15} /> Deployment Confirmed</>
+          ) : bookingState === 'scanning' ? (
+            <><Zap size={15} className="animate-pulse" /> Scanning Target...</>
+          ) : (
+            <><Zap size={15} /> Initiate Booking</>
+          )}
+        </button>
 
         {/* Interaction Matrix (Action Bar) */}
         <div className="flex items-center justify-between max-w-[320px] text-slate-400">
