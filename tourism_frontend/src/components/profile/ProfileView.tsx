@@ -49,6 +49,8 @@ export const ProfileView = () => {
           <div className="relative">
             <User size={18} className="absolute left-3 top-3.5 text-slate-400" />
             <input 
+              id="auth-username"
+              name="username"
               type="text" 
               placeholder="Username" 
               value={username}
@@ -62,6 +64,8 @@ export const ProfileView = () => {
             <div className="relative">
               <Mail size={18} className="absolute left-3 top-3.5 text-slate-400" />
               <input 
+                id="auth-email"
+                name="email"
                 type="email" 
                 placeholder="Email Address" 
                 value={email}
@@ -75,6 +79,8 @@ export const ProfileView = () => {
           <div className="relative">
             <Lock size={18} className="absolute left-3 top-3.5 text-slate-400" />
             <input 
+              id="auth-password"
+              name="password"
               type="password" 
               placeholder="Passphrase" 
               value={password}

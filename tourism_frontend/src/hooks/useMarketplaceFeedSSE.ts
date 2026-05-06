@@ -6,6 +6,8 @@ export const useMarketplaceFeedSSE = (url: string) => {
   const [newItem, setNewItem] = useState<MarketplaceItem | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const eventSourceRef = useRef<EventSource | null>(null);
+  const retryDelayRef = useRef(2000);
+  const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const connect = useCallback(() => {
     if (eventSourceRef.current) {
@@ -19,6 +21,7 @@ export const useMarketplaceFeedSSE = (url: string) => {
     es.onopen = () => {
       console.log('[SSE] Marketplace feed connected');
       setIsConnected(true);
+      retryDelayRef.current = 2000; // reset backoff on success
     };
 
     es.onmessage = (event) => {
@@ -38,10 +41,16 @@ export const useMarketplaceFeedSSE = (url: string) => {
       }
     };
 
-    es.onerror = (err) => {
-      console.error('[SSE] Marketplace feed error:', err);
+    es.onerror = () => {
+      console.warn(`[SSE] Marketplace feed error — retrying in ${retryDelayRef.current / 1000}s`);
       setIsConnected(false);
       es.close();
+      eventSourceRef.current = null;
+      // Exponential backoff reconnection (max 30s)
+      retryTimerRef.current = setTimeout(() => {
+        retryDelayRef.current = Math.min(retryDelayRef.current * 2, 30000);
+        connect();
+      }, retryDelayRef.current);
     };
   }, [url]);
 
@@ -50,6 +59,9 @@ export const useMarketplaceFeedSSE = (url: string) => {
     return () => {
       if (eventSourceRef.current) {
         eventSourceRef.current.close();
+      }
+      if (retryTimerRef.current) {
+        clearTimeout(retryTimerRef.current);
       }
     };
   }, [connect]);
