@@ -60,9 +60,16 @@ export const MarketplaceFeed = () => {
   useEffect(() => {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
     fetch(`${apiUrl}/api/marketplace/items`)
-      .then((r) => r.json())
-      .then((data: any[]) => {
-        const mapped = data.map((item) => ({
+      .then((r) => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json();
+      })
+      .then((data) => {
+        if (!Array.isArray(data)) {
+          console.warn('[MarketplaceFeed] API returned non-array:', data);
+          return;
+        }
+        const mapped = data.map((item: any) => ({
           id: String(item.id),
           image_url: item.image_url,
           description: item.description,

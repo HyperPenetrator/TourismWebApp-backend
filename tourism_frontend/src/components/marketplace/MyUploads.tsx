@@ -21,9 +21,12 @@ export const MyUploads = () => {
     fetch(`${apiUrl}/api/marketplace/my-items`, {
       headers: { Authorization: `Bearer ${token}` },
     })
-      .then((r) => r.json())
+      .then((r) => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json();
+      })
       .then((data) => {
-        setItems(data);
+        if (Array.isArray(data)) setItems(data);
         setLoading(false);
       })
       .catch((e) => {
