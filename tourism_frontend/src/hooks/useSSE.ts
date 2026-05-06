@@ -6,6 +6,7 @@ export const useSSE = <T = any>(url: string | null) => {
   const [error, setError] = useState<string | null>(null);
   const retryDelayRef = useRef(2000);
   const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const eventSourceRef = useRef<EventSource | null>(null);
 
   useEffect(() => {
     if (!url) return;
