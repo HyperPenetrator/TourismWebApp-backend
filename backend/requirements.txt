@@ -7,3 +7,5 @@ psycopg2-binary>=2.9.0
 passlib
 python-jose[cryptography]
 python-dotenv
+python-multipart
+email-validator

@@ -153,3 +153,62 @@ async def get_posts(skip: int = 0, limit: int = 20):
         return result
     finally:
         db.close()
+
+# --- Weaving Mock Endpoints (Integrated from websocket_mock.py) ---
+import random
+import time
+
+@app.websocket("/ws/weaving/{artisan_id}")
+async def websocket_weaving_endpoint(websocket: WebSocket, artisan_id: str):
+    await websocket.accept()
+    progress = random.randint(20, 40)
+    try:
+        while True:
+            progress += random.uniform(0.01, 0.05)
+            if progress > 100: progress = 100
+            payload = {
+                "timestamp": time.time(),
+                "artisan_id": artisan_id,
+                "metrics": {
+                    "weave_complexity": "High - Double Ikat",
+                    "current_progress": f"{progress:.2f}%",
+                    "shuttle_speed": f"{random.randint(40, 60)} strokes/min",
+                    "pattern_integrity": f"{random.uniform(98.5, 99.9):.1f}%",
+                    "estimated_completion_time": f"{max(0, 18.5 - (progress/5)):.1f} hours",
+                    "status": "Live broadcast active"
+                },
+                "alerts": [] if random.random() > 0.05 else ["Pattern density variation detected - auto-correcting"]
+            }
+            await websocket.send_json(payload)
+            await asyncio.sleep(2)
+    except WebSocketDisconnect:
+        pass
+    except Exception as e:
+        await websocket.close()
+
+@app.get("/sse/weaving/{artisan_id}")
+async def sse_weaving_endpoint(artisan_id: str):
+    async def event_generator():
+        progress = random.randint(20, 40)
+        try:
+            while True:
+                progress += random.uniform(0.01, 0.05)
+                if progress > 100: progress = 100
+                payload = {
+                    "timestamp": time.time(),
+                    "artisan_id": artisan_id,
+                    "metrics": {
+                        "weave_complexity": "High - Double Ikat",
+                        "current_progress": f"{progress:.2f}%",
+                        "shuttle_speed": f"{random.randint(40, 60)} strokes/min",
+                        "pattern_integrity": f"{random.uniform(98.5, 99.9):.1f}%",
+                        "estimated_completion_time": f"{max(0, 18.5 - (progress/5)):.1f} hours",
+                        "status": "Live broadcast active"
+                    },
+                    "alerts": [] if random.random() > 0.05 else ["Pattern density variation detected - auto-correcting"]
+                }
+                yield f"data: {json.dumps(payload)}\n\n"
+                await asyncio.sleep(2)
+        except asyncio.CancelledError:
+            pass
+    return StreamingResponse(event_generator(), media_type="text/event-stream")
