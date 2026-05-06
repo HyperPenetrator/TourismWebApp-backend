@@ -65,6 +65,7 @@ export const MarketplaceFeed = () => {
           id: String(item.id),
           image_url: item.image_url,
           description: item.description,
+          price: item.list_price ?? item.price ?? 0,
           list_price: item.list_price ?? item.price ?? 0,
           tags: item.tags || [],
           timestamp: item.created_at || new Date().toISOString(),
