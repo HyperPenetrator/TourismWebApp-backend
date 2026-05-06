@@ -16,6 +16,7 @@ app.add_middleware(
     allow_origins=[
         os.getenv("FRONTEND_URL", "http://localhost:3000"),
         "https://hrishikeshdutta-spot-ne.vercel.app",
+        "https://tourism-frontend-rho.vercel.app",
         "https://hrishikeshdutta-spot-ne-backend.hf.space",
     ],
     allow_credentials=True,

@@ -21,6 +21,7 @@ export function usePersonalNotificationsSSE() {
   useEffect(() => {
     if (!isAuthenticated || !token) return;
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+    console.log(`[Notifications] Loading history from ${apiUrl}...`);
     fetch(`${apiUrl}/api/notifications`, {
       headers: { Authorization: `Bearer ${token}` },
     })
@@ -45,8 +46,9 @@ export function usePersonalNotificationsSSE() {
 
     let eventSource: EventSource;
     const connect = () => {
-      const url = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/sse/notifications?token=${token}`;
-      console.log('[SSE] Connecting to personal notifications...');
+      const apiBase = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+      const url = `${apiBase}/sse/notifications?token=${token}`;
+      console.log(`[SSE] Connecting to personal notifications at ${apiBase}...`);
       eventSource = new EventSource(url);
 
       eventSource.onopen = () => {

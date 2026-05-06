@@ -9,7 +9,7 @@ export const LiveWeavingHUD = ({ artisanId = 'a1' }: { artisanId?: string }) => 
   const videoRef = useRef<HTMLVideoElement>(null);
   
   const { data, isConnected } = useSSE<HUDData>(
-    `${process.env.NEXT_PUBLIC_SSE_URL || 'http://localhost:8001'}/sse/weaving/${artisanId}`
+    `${process.env.NEXT_PUBLIC_SSE_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/sse/weaving/${artisanId}`
   );
 
   // Handle auto-playing video simulation

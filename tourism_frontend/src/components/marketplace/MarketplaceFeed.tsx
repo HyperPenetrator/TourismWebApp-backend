@@ -14,7 +14,13 @@ export const MarketplaceFeed = () => {
   const [securedItems, setSecuredItems] = useState<Set<string>>(new Set());
   const { token, isAuthenticated } = useAuth();
 
-  const sseUrl = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/sse/marketplace`;
+  const apiBase = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+  const sseUrl = `${apiBase}/sse/marketplace`;
+  
+  useEffect(() => {
+    console.log(`[MarketplaceFeed] Initializing with API: ${apiBase}`);
+  }, [apiBase]);
+
   const { newItem, isConnected } = useMarketplaceFeedSSE(sseUrl);
   const { notification: authorNotification, clearNotification } = usePersonalNotificationsSSE();
 
