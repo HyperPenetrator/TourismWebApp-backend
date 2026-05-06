@@ -25,6 +25,7 @@ export interface MarketplaceItem {
   tags: string[];
   timestamp?: number | string;
   createdAt?: string;
+  created_at?: string;
   seller_id?: number;
   artisanId?: string;
 }

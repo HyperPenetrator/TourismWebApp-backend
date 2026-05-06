@@ -110,7 +110,7 @@ export const LiveMarketplaceFeed: React.FC<LiveMarketplaceFeedProps> = ({
               <div className="relative aspect-[4/3] w-full overflow-hidden bg-black/50">
                 <Image
                   src={item.imageUrl || item.image_url || 'https://images.unsplash.com/photo-1605000797499-95a51c5269ae?q=80&w=1000'}
-                  alt={item.title}
+                  alt={item.title || 'Marketplace Item'}
                   fill
                   sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                   className="object-cover transition-transform duration-700 group-hover:scale-105 group-hover:opacity-80"

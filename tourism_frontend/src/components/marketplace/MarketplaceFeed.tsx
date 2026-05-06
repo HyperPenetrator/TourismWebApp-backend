@@ -137,7 +137,7 @@ export const MarketplaceFeed = () => {
                 {/* Image Container */}
                 <div className="relative aspect-square overflow-hidden">
                   <img 
-                    src={item.image_url.startsWith('http') ? item.image_url : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}${item.image_url}`} 
+                    src={item.image_url?.startsWith('http') ? item.image_url : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}${item.image_url || ''}`} 
                     alt="Marketplace Item" 
                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                   />

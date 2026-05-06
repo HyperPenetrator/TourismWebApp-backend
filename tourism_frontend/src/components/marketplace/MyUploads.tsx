@@ -89,7 +89,7 @@ export const MyUploads = () => {
                         ? item.image_url
                         : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}${item.image_url}`
                     }
-                    alt={item.title}
+                    alt={item.title || 'Marketplace Item'}
                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                   />
                   <div className="absolute bottom-3 left-3 flex gap-1 flex-wrap">
