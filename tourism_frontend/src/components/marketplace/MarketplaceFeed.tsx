@@ -4,7 +4,8 @@ import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ShoppingCart, Heart, Share2, Tag as TagIcon, Check } from 'lucide-react';
 
-import { useMarketplaceFeedSSE, MarketplaceItem } from '@/hooks/useMarketplaceFeedSSE';
+import { useMarketplaceFeedSSE } from '@/hooks/useMarketplaceFeedSSE';
+import { MarketplaceItem } from '@/lib/types';
 import { usePersonalNotificationsSSE } from '@/hooks/usePersonalNotificationsSSE';
 import { useAuth } from '@/context/AuthContext';
 
@@ -118,7 +119,7 @@ export const MarketplaceFeed = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <AnimatePresence mode="popLayout">
           {items.map((item) => {
-            const isSecured = securedItems.has(item.id);
+            const isSecured = securedItems.has(String(item.id));
             
             return (
               <motion.div
@@ -175,7 +176,7 @@ export const MarketplaceFeed = () => {
                   </div>
                   
                   <button 
-                    onClick={() => handleSecure(item.id)}
+                    onClick={() => handleSecure(String(item.id))}
                     disabled={isSecured}
                     className={`w-full mt-4 py-2.5 rounded-xl text-sm font-semibold transition-all flex items-center justify-center gap-2 border ${
                       isSecured 
