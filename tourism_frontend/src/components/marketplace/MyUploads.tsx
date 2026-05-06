@@ -5,18 +5,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Package, Tag, Clock, ShoppingBag } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 
-interface MyItem {
-  id: number;
-  title: string;
-  description: string;
-  list_price: number;
-  image_url: string;
-  tags: string[];
-  created_at: string | null;
-}
+import { MarketplaceItem } from '@/lib/types';
 
 export const MyUploads = () => {
-  const [items, setItems] = useState<MyItem[]>([]);
+  const [items, setItems] = useState<MarketplaceItem[]>([]);
   const [loading, setLoading] = useState(true);
   const { token, isAuthenticated } = useAuth();
 

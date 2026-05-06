@@ -15,10 +15,16 @@ export interface HUDData {
 }
 
 export interface MarketplaceItem {
-  id: string;
-  image_url: string;
+  id: string | number;
+  title?: string;
   description: string;
   price: number;
+  list_price?: number;
+  image_url: string;
+  imageUrl?: string;
   tags: string[];
-  timestamp: number;
+  timestamp?: number | string;
+  createdAt?: string;
+  seller_id?: number;
+  artisanId?: string;
 }

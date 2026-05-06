@@ -8,7 +8,7 @@ import { IndianRupee, Tag, Clock } from 'lucide-react';
 
 interface LiveMarketplaceFeedProps {
   initialItems?: MarketplaceItem[];
-  wsUrl?: string;
+  sseUrl?: string;
 }
 
 const DUMMY_ITEMS: MarketplaceItem[] = [
@@ -109,7 +109,7 @@ export const LiveMarketplaceFeed: React.FC<LiveMarketplaceFeedProps> = ({
               {/* Image Container */}
               <div className="relative aspect-[4/3] w-full overflow-hidden bg-black/50">
                 <Image
-                  src={item.imageUrl}
+                  src={item.imageUrl || item.image_url || 'https://images.unsplash.com/photo-1605000797499-95a51c5269ae?q=80&w=1000'}
                   alt={item.title}
                   fill
                   sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"

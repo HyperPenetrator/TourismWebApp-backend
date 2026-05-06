@@ -4,16 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ShoppingCart, Heart, Share2, Tag as TagIcon, Check } from 'lucide-react';
 
-interface MarketplaceItem {
-  id: string;
-  image_url: string;
-  description: string;
-  list_price: number;
-  tags: string[];
-  timestamp: string;
-}
-
-import { useMarketplaceFeedSSE } from '@/hooks/useMarketplaceFeedSSE';
+import { useMarketplaceFeedSSE, MarketplaceItem } from '@/hooks/useMarketplaceFeedSSE';
 import { usePersonalNotificationsSSE } from '@/hooks/usePersonalNotificationsSSE';
 import { useAuth } from '@/context/AuthContext';
 

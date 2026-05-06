@@ -1,14 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-export interface MarketplaceItem {
-  id: string;
-  title: string;
-  description: string;
-  price: number;
-  tags: string[];
-  imageUrl: string;
-  artisanId: string;
-  createdAt: string;
-}
+import { MarketplaceItem } from '@/lib/types';
 
 
 export const useMarketplaceFeedWS = (url: string) => {
