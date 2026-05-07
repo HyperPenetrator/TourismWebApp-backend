@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { usePathname } from 'next/navigation';
+import { ThemeToggle } from '@/components/ui/ThemeToggle';
 
 export const TopBar = () => {
   const pathname = usePathname();
@@ -26,7 +27,8 @@ export const TopBar = () => {
         </div>
 
         {/* Protocol Badge (Top-right utility) */}
-        <div className="flex items-center justify-end w-8">
+        <div className="flex items-center justify-end gap-3 w-auto">
+           <ThemeToggle />
            <div className="w-5 h-5 rounded-full border border-tactical-emerald/30 flex items-center justify-center bg-tactical-emerald/5 group cursor-help transition-all hover:bg-tactical-emerald/10" title="Protocol: Terra">
              <div className="w-1.5 h-1.5 rounded-full bg-tactical-emerald animate-pulse"></div>
            </div>

@@ -18,6 +18,7 @@ app.add_middleware(
         "https://hrishikeshdutta-spot-ne.vercel.app",
         "https://tourism-frontend-rho.vercel.app",
         "https://hrishikeshdutta-spot-ne-backend.hf.space",
+        "https://tourism-web-app-backend.vercel.app",
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -158,6 +159,7 @@ async def get_posts(skip: int = 0, limit: int = 20):
 # --- Weaving Mock Endpoints (Integrated from websocket_mock.py) ---
 import random
 import time
+import asyncio
 
 @app.websocket("/ws/weaving/{artisan_id}")
 async def websocket_weaving_endpoint(websocket: WebSocket, artisan_id: str):
