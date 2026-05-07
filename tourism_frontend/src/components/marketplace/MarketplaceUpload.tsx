@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useState, useCallback } from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Upload, X, Plus, IndianRupee, Tag as TagIcon } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
+import { useMarketplaceUpload } from '@/hooks/useMarketplaceUpload';
 
 export const MarketplaceUpload = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -13,8 +14,9 @@ export const MarketplaceUpload = () => {
   const [price, setPrice] = useState('');
   const [tagInput, setTagInput] = useState('');
   const [tags, setTags] = useState<string[]>([]);
-  const [isUploading, setIsUploading] = useState(false);
-  const { token, isAuthenticated } = useAuth();
+  
+  const { isAuthenticated } = useAuth();
+  const { uploadItem, isUploading, error: uploadError } = useMarketplaceUpload();
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
@@ -44,43 +46,21 @@ export const MarketplaceUpload = () => {
     e.preventDefault();
     if (!file || !description || !price) return;
 
-    if (!token) {
-      console.error('No auth token available. Please log in.');
-      setIsUploading(false);
-      return;
-    }
+    const success = await uploadItem({
+      file,
+      description,
+      price,
+      tags
+    });
 
-    console.log(`[Marketplace] Uploading item... Token exists: ${!!token}`);
-
-    const formData = new FormData();
-    formData.append('image', file);
-    formData.append('description', description);
-    formData.append('price', price);
-    formData.append('tags', tags.join(','));
-
-    try {
-      const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-      const response = await fetch(`${apiBaseUrl}/api/marketplace/upload`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        },
-        body: formData,
-      });
-
-      if (response.ok) {
-        // Reset form
-        setFile(null);
-        setPreview(null);
-        setDescription('');
-        setPrice('');
-        setTags([]);
-        setIsOpen(false);
-      }
-    } catch (error) {
-      console.error('Upload failed:', error);
-    } finally {
-      setIsUploading(false);
+    if (success) {
+      // Reset form
+      setFile(null);
+      setPreview(null);
+      setDescription('');
+      setPrice('');
+      setTags([]);
+      setIsOpen(false);
     }
   };
 
@@ -138,89 +118,95 @@ export const MarketplaceUpload = () => {
                 </div>
               ) : (
                 <form onSubmit={handleSubmit} className="space-y-4">
-                {/* Image Upload Zone */}
-                <div 
-                  className={`relative h-48 rounded-2xl border-2 border-dashed transition-colors flex flex-col items-center justify-center overflow-hidden ${
-                    preview ? 'border-tactical-emerald' : 'border-slate-200 dark:border-white/20 hover:border-tactical-emerald/50'
-                  }`}
-                >
-                  {preview ? (
-                    <>
-                      <img src={preview} alt="Preview" className="w-full h-full object-cover" />
-                      <button 
-                        type="button"
-                        onClick={() => { setFile(null); setPreview(null); }}
-                        className="absolute top-2 right-2 p-1 bg-black/50 rounded-full text-white"
-                      >
-                        <X size={16} />
-                      </button>
-                    </>
-                  ) : (
-                    <label className="cursor-pointer flex flex-col items-center">
-                      <Upload size={32} className="text-slate-300 dark:text-white/40 mb-2" />
-                      <span className="text-sm text-slate-500 dark:text-white/60">Drag & drop or click to upload</span>
-                      <input type="file" className="hidden" onChange={handleFileChange} accept="image/*" />
-                    </label>
+                  {uploadError && (
+                    <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 text-sm">
+                      {uploadError}
+                    </div>
                   )}
-                </div>
 
-                {/* Description */}
-                <div>
-                  <textarea
-                    placeholder="Describe this treasure..."
-                    className="w-full bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl p-3 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-white/30 focus:outline-none focus:border-tactical-emerald/50 min-h-[100px]"
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    required
-                  />
-                </div>
+                  {/* Image Upload Zone */}
+                  <div 
+                    className={`relative h-48 rounded-2xl border-2 border-dashed transition-colors flex flex-col items-center justify-center overflow-hidden ${
+                      preview ? 'border-tactical-emerald' : 'border-slate-200 dark:border-white/20 hover:border-tactical-emerald/50'
+                    }`}
+                  >
+                    {preview ? (
+                      <>
+                        <img src={preview} alt="Preview" className="w-full h-full object-cover" />
+                        <button 
+                          type="button"
+                          onClick={() => { setFile(null); setPreview(null); }}
+                          className="absolute top-2 right-2 p-1 bg-black/50 rounded-full text-white"
+                        >
+                          <X size={16} />
+                        </button>
+                      </>
+                    ) : (
+                      <label className="cursor-pointer flex flex-col items-center">
+                        <Upload size={32} className="text-slate-300 dark:text-white/40 mb-2" />
+                        <span className="text-sm text-slate-500 dark:text-white/60">Drag & drop or click to upload</span>
+                        <input type="file" className="hidden" onChange={handleFileChange} accept="image/*" />
+                      </label>
+                    )}
+                  </div>
 
-                {/* Price & Tags */}
-                <div className="flex gap-4">
-                  <div className="relative flex-1">
-                    <IndianRupee size={16} className="absolute left-3 top-3.5 text-slate-400 dark:text-white/40" />
-                    <input
-                      type="number"
-                      placeholder="Price"
-                      className="w-full bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl py-2.5 pl-9 pr-3 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-white/30 focus:outline-none focus:border-tactical-emerald/50"
-                      value={price}
-                      onChange={(e) => setPrice(e.target.value)}
+                  {/* Description */}
+                  <div>
+                    <textarea
+                      placeholder="Describe this treasure..."
+                      className="w-full bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl p-3 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-white/30 focus:outline-none focus:border-tactical-emerald/50 min-h-[100px]"
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
                       required
                     />
                   </div>
-                  <div className="relative flex-[2]">
-                    <TagIcon size={16} className="absolute left-3 top-3.5 text-slate-400 dark:text-white/40" />
-                    <input
-                      type="text"
-                      placeholder="Add tags (Enter)"
-                      className="w-full bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl py-2.5 pl-9 pr-3 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-white/30 focus:outline-none focus:border-tactical-emerald/50"
-                      value={tagInput}
-                      onChange={(e) => setTagInput(e.target.value)}
-                      onKeyDown={handleAddTag}
-                    />
+
+                  {/* Price & Tags */}
+                  <div className="flex gap-4">
+                    <div className="relative flex-1">
+                      <IndianRupee size={16} className="absolute left-3 top-3.5 text-slate-400 dark:text-white/40" />
+                      <input
+                        type="number"
+                        placeholder="Price"
+                        className="w-full bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl py-2.5 pl-9 pr-3 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-white/30 focus:outline-none focus:border-tactical-emerald/50"
+                        value={price}
+                        onChange={(e) => setPrice(e.target.value)}
+                        required
+                      />
+                    </div>
+                    <div className="relative flex-[2]">
+                      <TagIcon size={16} className="absolute left-3 top-3.5 text-slate-400 dark:text-white/40" />
+                      <input
+                        type="text"
+                        placeholder="Add tags (Enter)"
+                        className="w-full bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl py-2.5 pl-9 pr-3 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-white/30 focus:outline-none focus:border-tactical-emerald/50"
+                        value={tagInput}
+                        onChange={(e) => setTagInput(e.target.value)}
+                        onKeyDown={handleAddTag}
+                      />
+                    </div>
                   </div>
-                </div>
 
-                {/* Tag Pills */}
-                <div className="flex flex-wrap gap-2">
-                  {tags.map(tag => (
-                    <span key={tag} className="flex items-center gap-1 px-2 py-1 bg-tactical-emerald/20 border border-tactical-emerald/30 text-tactical-emerald rounded-full text-xs font-medium">
-                      {tag}
-                      <button type="button" onClick={() => removeTag(tag)} className="hover:text-white">
-                        <X size={12} />
-                      </button>
-                    </span>
-                  ))}
-                </div>
+                  {/* Tag Pills */}
+                  <div className="flex flex-wrap gap-2">
+                    {tags.map(tag => (
+                      <span key={tag} className="flex items-center gap-1 px-2 py-1 bg-tactical-emerald/20 border border-tactical-emerald/30 text-tactical-emerald rounded-full text-xs font-medium">
+                        {tag}
+                        <button type="button" onClick={() => removeTag(tag)} className="hover:text-white">
+                          <X size={12} />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
 
-                <button
-                  type="submit"
-                  disabled={isUploading || !file}
-                  className="w-full py-4 bg-tactical-emerald text-white rounded-xl font-bold text-lg shadow-lg shadow-tactical-emerald/20 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50 disabled:scale-100"
-                >
-                  {isUploading ? 'Broadcasting to Feed...' : 'Publish to Marketplace'}
-                </button>
-              </form>
+                  <button
+                    type="submit"
+                    disabled={isUploading || !file}
+                    className="w-full py-4 bg-tactical-emerald text-white rounded-xl font-bold text-lg shadow-lg shadow-tactical-emerald/20 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50 disabled:scale-100"
+                  >
+                    {isUploading ? 'Broadcasting to Feed...' : 'Publish to Marketplace'}
+                  </button>
+                </form>
               )}
             </motion.div>
           </div>

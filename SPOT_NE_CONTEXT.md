@@ -1,28 +1,35 @@
 # Spot@NE | Project Context & Development Guide
 
 ## Overview
-Spot@NE is a premium web application designed to showcase and monitor artisan activities in Northeast India. It features real-time social engagement, live telemetry feeds for artisans (Artisan Dossiers), and a marketplace with dynamic filtering.
+Spot@NE is a premium web application designed to showcase and monitor artisan activities in Northeast India. It features real-time social engagement, live telemetry feeds for artisans (Artisan Dossiers), and a marketplace with dynamic filtering and real-time order notifications.
 
 ## Architecture
 The project is split into two main components:
-1. **Frontend**: Next.js 16.2.4 application with Tailwind CSS 4 and Framer Motion for high-craft UI/UX.
-2. **Backend**: FastAPI/Python based mock server providing real-time WebSocket telemetry.
+1. **Frontend (`/tourism_frontend`)**: Next.js 16.2.4 application with Tailwind CSS 4 and Framer Motion for high-craft UI/UX, fully responsive and featuring Light/Dark modes.
+2. **Backend (`/backend`)**: FastAPI/Python server handling JWT authentication, a real-time Server-Sent Events (SSE) and WebSocket infrastructure for telemetry and notifications, and an SQLite database for persistent storage (users, marketplace items, engagements, and notifications).
+
+## Environments & Deployment
+- **Frontend Hosting**: Deployed on Vercel.
+- **Backend Hosting**: Deployed as a Dockerized container on Hugging Face Spaces.
+  - *Production API URL*: `https://hrishikeshdutta-spot-ne-backend.hf.space`
+- **Environment Variables**:
+  - `NEXT_PUBLIC_API_URL`: Points to the backend URL (`http://localhost:8000` for local dev).
 
 ## Local Development Setup
 
 ### 1. Prerequisites
 - Node.js (v18+)
 - Python (v3.9+)
-- `pip install websockets`
 
 ### 2. Running the Backend
-Navigate to the `NER-Heritage-MCP` directory and start the WebSocket server:
+Navigate to the `backend` directory, install dependencies, and start the FastAPI server:
 ```powershell
-cd NER-Heritage-MCP
-python websocket_mock.py
+cd backend
+pip install -r requirements.txt
+uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 ```
-- **Port**: 8001
-- **Endpoint**: `ws://localhost:8001/ws/weaving/{artisan_id}`
+- **Port**: 8000
+- **Base URL**: `http://localhost:8000`
 
 ### 3. Running the Frontend
 Navigate to the `tourism_frontend` directory and start the Next.js dev server:
@@ -31,16 +38,20 @@ cd tourism_frontend
 npm run dev
 ```
 - **Port**: 3000
-- **URL**: [http://localhost:3000](http://localhost:3000)
+- **URL**: `http://localhost:3000`
 
 ## Core Features
 - **LiveWeavingHUD**: Real-time HUD overlay on video background displaying weaving metrics (complexity, progress, alerts).
 - **Social Monitor**: Integrated WebSocket listener for real-time engagement events (likes, comments, reshares).
-- **Dynamic Marketplace**: Filterable feed with glassmorphic UI components.
+- **Dynamic Marketplace**: Filterable feed with glassmorphic UI components, drag-and-drop item uploads, and real-time SSE updates for new inventory.
+- **Author Dashboard & Notifications**: Real-time order notifications for artisans when buyers secure an item, synced via SSE.
+- **Authentication**: JWT-based login/registration with secure route protection.
 
 ## Recent Updates
-- **Fixed Video Fallback**: The `LiveWeavingHUD` now uses a stable primary video source (`BigBuckBunny.mp4` sample) to avoid console errors from expired Vimeo links.
-- **WebSocket Stability**: Verified connection between the Python mock server and the Next.js frontend.
+- **Hugging Face Deployment**: Backend successfully deployed to HF Spaces using the `scripts/upload_to_hf.py` script.
+- **SSE Stabilization**: Fixed HTTP/2 Protocol Errors caused by proxy buffering on HF Spaces by applying `X-Accel-Buffering: no` headers.
+- **CORS & Auth Fixes**: Enabled cross-origin API communication between Vercel and HF Spaces, and fixed 307 Redirect token-dropping issues for `/api/notifications`.
+- **UI Enhancements**: Integrated a global Light/Dark mode toggle to the TopBar utility section.
 
 ---
-*Created on 2026-05-01 by Antigravity*
+*Last Updated on 2026-05-07 by Antigravity*

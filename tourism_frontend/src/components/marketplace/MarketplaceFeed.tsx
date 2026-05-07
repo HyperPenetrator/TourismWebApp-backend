@@ -5,36 +5,38 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ShoppingCart, Heart, Share2, Tag as TagIcon, Check } from 'lucide-react';
 
 import { useMarketplaceFeedSSE } from '@/hooks/useMarketplaceFeedSSE';
-import { MarketplaceItem } from '@/lib/types';
+import { useMarketplaceItems } from '@/hooks/useMarketplaceItems';
 import { usePersonalNotificationsSSE } from '@/hooks/usePersonalNotificationsSSE';
 import { useAuth } from '@/context/AuthContext';
 
 export const MarketplaceFeed = () => {
-  const [items, setItems] = useState<MarketplaceItem[]>([]);
-  const [securedItems, setSecuredItems] = useState<Set<string>>(new Set());
   const { token, isAuthenticated } = useAuth();
+  const [securedItems, setSecuredItems] = useState<Set<string>>(new Set());
+  const [notification, setNotification] = useState<string | null>(null);
 
   const apiBase = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
   const sseUrl = `${apiBase}/sse/marketplace`;
   
-  useEffect(() => {
-    console.log(`[MarketplaceFeed] Initializing with API: ${apiBase}`);
-  }, [apiBase]);
-
+  const { items, prependItem } = useMarketplaceItems();
   const { newItem, isConnected } = useMarketplaceFeedSSE(sseUrl);
   const { notification: authorNotification, clearNotification } = usePersonalNotificationsSSE();
-
-  const [notification, setNotification] = useState<string | null>(null);
 
   useEffect(() => {
     if (authorNotification) {
       setNotification(`🎉 ${authorNotification.message}`);
-      setTimeout(() => {
+      const timer = setTimeout(() => {
         setNotification(null);
         clearNotification();
       }, 5000);
+      return () => clearTimeout(timer);
     }
   }, [authorNotification, clearNotification]);
+
+  useEffect(() => {
+    if (newItem) {
+      prependItem(newItem);
+    }
+  }, [newItem, prependItem]);
 
   const handleSecure = async (id: string) => {
     if (!isAuthenticated || !token) {
@@ -46,7 +48,7 @@ export const MarketplaceFeed = () => {
     setNotification('Order placed! Notifying Author...');
     
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/marketplace/secure-item/${id}`, {
+      const response = await fetch(`${apiBase}/api/marketplace/secure-item/${id}`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -61,43 +63,6 @@ export const MarketplaceFeed = () => {
       setTimeout(() => setNotification(null), 3000);
     }
   };
-
-  // Hydrate with historical items on mount
-  useEffect(() => {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-    fetch(`${apiUrl}/api/marketplace/items`)
-      .then((r) => {
-        if (!r.ok) throw new Error(`HTTP ${r.status}`);
-        return r.json();
-      })
-      .then((data) => {
-        if (!Array.isArray(data)) {
-          console.warn('[MarketplaceFeed] API returned non-array:', data);
-          return;
-        }
-        const mapped = data.map((item: any) => ({
-          id: String(item.id),
-          image_url: item.image_url,
-          description: item.description,
-          price: item.list_price ?? item.price ?? 0,
-          list_price: item.list_price ?? item.price ?? 0,
-          tags: item.tags || [],
-          timestamp: item.created_at || new Date().toISOString(),
-        }));
-        setItems(mapped);
-      })
-      .catch((e) => console.error('[MarketplaceFeed] Failed to load history:', e));
-  }, []);
-
-  useEffect(() => {
-    if (newItem) {
-      // Prepend new item to the top of the feed
-      setItems(prevItems => {
-        if (prevItems.some(i => i.id === newItem.id)) return prevItems;
-        return [newItem, ...prevItems];
-      });
-    }
-  }, [newItem]);
 
   return (
     <div className="w-full relative">
@@ -152,7 +117,7 @@ export const MarketplaceFeed = () => {
                 {/* Image Container */}
                 <div className="relative aspect-square overflow-hidden">
                   <img 
-                    src={item.image_url?.startsWith('http') ? item.image_url : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}${item.image_url || ''}`} 
+                    src={item.image_url?.startsWith('http') ? item.image_url : `${apiBase}${item.image_url || ''}`} 
                     alt="Marketplace Item" 
                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                   />
@@ -169,7 +134,7 @@ export const MarketplaceFeed = () => {
                   </div>
 
                   <div className="absolute bottom-3 left-3 flex gap-1">
-                    {item.tags.slice(0, 2).map(tag => (
+                    {item.tags?.slice(0, 2).map(tag => (
                       <span key={tag} className="px-2 py-0.5 bg-black/40 backdrop-blur-md text-[10px] text-white rounded-md border border-white/10">
                         #{tag}
                       </span>

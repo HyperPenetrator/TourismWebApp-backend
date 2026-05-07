@@ -66,25 +66,5 @@ export const useMarketplaceFeedSSE = (url: string) => {
     };
   }, [connect]);
 
-  const mockPushItem = (item?: MarketplaceItem) => {
-    if (item) {
-      setNewItem(item);
-      return;
-    }
-    const mockItem: MarketplaceItem = {
-      id: `mock_${Math.floor(Math.random() * 1000)}`,
-      title: 'Mock Artisan Product',
-      image_url: `https://picsum.photos/seed/${Math.random()}/400/400`,
-      imageUrl: `https://picsum.photos/seed/${Math.random()}/400/400`,
-      description: 'Mock Artisan Product (Client-Side Push)',
-      price: 1250,
-      tags: ['mock', 'preview'],
-      timestamp: Date.now(),
-      createdAt: new Date().toISOString(),
-      artisanId: 'MOCK_ARTISAN'
-    };
-    setNewItem(mockItem);
-  };
-
-  return { newItem, isConnected, mockPushItem };
+  return { newItem, isConnected };
 };

@@ -1,20 +1,14 @@
-from fastapi import APIRouter, UploadFile, File, Form, HTTPException, status, BackgroundTasks, Depends
-from auth import get_current_user, get_current_user_ws
+from fastapi import APIRouter, UploadFile, File, Form, HTTPException, BackgroundTasks, Depends
+from auth import get_current_user
 from models import User, MarketplaceItem, Notification
 from database import get_db
-from marketplace_mcp import index_marketplace_item
-from utils.websocket_manager import manager
+from services.marketplace_service import create_marketplace_item
+from utils.file_service import save_upload_file
+from utils.websocket_manager import manager, sse_manager
 from sqlalchemy.orm import Session
-import shutil
-import os
-import uuid
-import json
-from datetime import datetime
+from datetime import datetime, timezone
 
 router = APIRouter(tags=["Marketplace"])
-
-UPLOAD_DIR = "uploads"
-os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 @router.post("/upload")
 async def upload_item(
@@ -26,34 +20,30 @@ async def upload_item(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    if image.content_type not in {"image/jpeg", "image/png", "image/webp"}:
-        raise HTTPException(status_code=415, detail="Unsupported file type")
+    # 1. Save Image
+    image_url = save_upload_file(image)
     
-    ext = image.filename.split(".")[-1] if "." in image.filename else ""
-    filename = f"{uuid.uuid4()}.{ext}" if ext else str(uuid.uuid4())
-    filepath = os.path.join(UPLOAD_DIR, filename)
-    
-    try:
-        with open(filepath, "wb") as buffer:
-            shutil.copyfileobj(image.file, buffer)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to save image: {str(e)}")
-    finally:
-        image.file.close()
-    
-    image_url = f"/uploads/{filename}"
+    # 2. Parse Tags
     tag_list = [t.strip() for t in tags.split(",") if t.strip()]
     
-    result_str = index_marketplace_item(image_url, description, price, tag_list, current_user.id, db)
-    result = json.loads(result_str)
+    # 3. Create Item via Service
+    try:
+        item_data = create_marketplace_item(
+            db=db,
+            image_url=image_url,
+            description=description,
+            price=price,
+            tags=tag_list,
+            seller_id=current_user.id
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     
-    if result.get("status") == "error":
-        raise HTTPException(status_code=400, detail=result.get("message"))
-    
-    item_payload = {"event": "new_item", "data": result["item"]}
+    # 4. Broadcast to Feed
+    item_payload = {"event": "new_item", "data": item_data}
     background_tasks.add_task(manager.broadcast, item_payload)
     
-    return {"status": "success", "message": "Item uploaded and broadcasted", "item": result["item"]}
+    return {"status": "success", "message": "Item uploaded and broadcasted", "item": item_data}
 
 @router.get("/items")
 async def list_items(db: Session = Depends(get_db), skip: int = 0, limit: int = 50):
@@ -78,7 +68,6 @@ async def my_items(
     skip: int = 0,
     limit: int = 50
 ):
-    """Fetch all marketplace items uploaded by the currently logged-in user."""
     items = (
         db.query(MarketplaceItem)
         .filter(MarketplaceItem.seller_id == current_user.id)
@@ -107,8 +96,6 @@ async def secure_item(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    from utils.websocket_manager import sse_manager
-    
     item = db.query(MarketplaceItem).filter(MarketplaceItem.id == item_id).first()
     if not item:
         raise HTTPException(status_code=404, detail="Item not found")
@@ -117,7 +104,7 @@ async def secure_item(
     if not seller:
         raise HTTPException(status_code=404, detail="Seller not found")
     
-    # --- Persist notification to database ---
+    # --- Persist notification ---
     msg = f"Good news! {current_user.username} just ordered your item: '{item.title}'"
     db_notification = Notification(
         user_id=seller.id,
@@ -131,7 +118,7 @@ async def secure_item(
     db.commit()
     db.refresh(db_notification)
 
-    # --- Push real-time SSE event to author ---
+    # --- Push real-time SSE event ---
     sse_event = {
         "event": "new_order",
         "data": {
@@ -139,7 +126,7 @@ async def secure_item(
             "message": msg,
             "item_id": item.id,
             "buyer": current_user.username,
-            "timestamp": db_notification.created_at.isoformat() if db_notification.created_at else datetime.utcnow().isoformat(),
+            "timestamp": db_notification.created_at.isoformat() if db_notification.created_at else datetime.now(timezone.utc).isoformat(),
             "read": False,
         }
     }
