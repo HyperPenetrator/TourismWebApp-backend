@@ -77,7 +77,15 @@ async def sse_marketplace_endpoint(request: Request):
         finally:
             sse_manager.disconnect(queue)
 
-    return StreamingResponse(event_generator(), media_type="text/event-stream")
+    return StreamingResponse(
+        event_generator(), 
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no"
+        }
+    )
 
 from database import SessionLocal
 from auth import get_current_user_ws
@@ -108,7 +116,15 @@ async def sse_notifications_endpoint(request: Request, token: str = Query(None))
         finally:
             sse_manager.disconnect(queue)
 
-    return StreamingResponse(event_generator(), media_type="text/event-stream")
+    return StreamingResponse(
+        event_generator(), 
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no"
+        }
+    )
 
 from models import Post, Engagement
 from sqlalchemy import func as sa_func
@@ -214,4 +230,12 @@ async def sse_weaving_endpoint(artisan_id: str):
                 await asyncio.sleep(2)
         except asyncio.CancelledError:
             pass
-    return StreamingResponse(event_generator(), media_type="text/event-stream")
+    return StreamingResponse(
+        event_generator(), 
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no"
+        }
+    )
