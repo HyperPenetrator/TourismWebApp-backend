@@ -7,7 +7,7 @@ from models import Notification, User
 router = APIRouter(tags=["Notifications"])
 
 
-@router.get("/")
+@router.get("")
 async def get_notifications(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
