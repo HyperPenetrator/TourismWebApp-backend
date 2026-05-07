@@ -27,6 +27,11 @@ export interface Experience {
   description: string;
   tags: string[];
   type: 'experience';
+  engagement?: {
+    likes: number;
+    comments: number;
+    reshares: number;
+  };
 }
 
 export type FeedItem = Artisan | Experience;
