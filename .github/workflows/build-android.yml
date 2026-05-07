@@ -72,6 +72,20 @@ jobs:
           npx cap add android
           npx cap sync android
 
+      - name: Fix Kotlin Stdlib Duplicates
+        working-directory: tourism_frontend/android
+        run: |
+          cat << 'EOF' >> app/build.gradle
+
+          configurations.all {
+              resolutionStrategy {
+                  force 'org.jetbrains.kotlin:kotlin-stdlib:1.8.22'
+                  force 'org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.8.22'
+                  force 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.8.22'
+              }
+          }
+          EOF
+
       - name: Build Android APK
         working-directory: tourism_frontend/android
         run: chmod +x gradlew && ./gradlew assembleDebug
