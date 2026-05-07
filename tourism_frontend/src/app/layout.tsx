@@ -18,6 +18,18 @@ export const metadata: Metadata = {
   description: "Digital spotlight on authentic regional artisans and curated cultural experiences across Northeast India.",
 };
 
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  viewportFit: "cover",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+    { media: "(prefers-color-scheme: dark)", color: "#0f172a" },
+  ],
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -25,7 +37,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="h-full antialiased" suppressHydrationWarning>
-      <body className={`${geistSans.variable} ${geistMono.variable} min-h-full flex flex-col`} suppressHydrationWarning>
+      <body className={`${geistSans.variable} ${geistMono.variable} min-h-[100dvh] flex flex-col overscroll-none selection:bg-tactical-emerald/30`} suppressHydrationWarning>
         <Providers>
           {children}
         </Providers>

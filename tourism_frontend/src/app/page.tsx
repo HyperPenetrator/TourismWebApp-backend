@@ -31,7 +31,7 @@ export default function Home() {
   }, [activeZone]);
 
   return (
-    <main className="relative min-h-screen bg-background pb-32">
+    <main className="relative min-h-[100dvh] bg-background pb-[calc(10rem+env(safe-area-inset-bottom))]">
       <TopBar />
       
       {/* Background Ambience */}

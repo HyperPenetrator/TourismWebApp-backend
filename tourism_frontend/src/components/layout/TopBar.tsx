@@ -9,7 +9,7 @@ export const TopBar = () => {
   const isSearch = pathname === '/search';
 
   return (
-    <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-[20px] border-b border-spine-line px-4 py-[16px]">
+    <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-[20px] border-b border-spine-line px-4 pt-[max(16px,env(safe-area-inset-top))] pb-[16px]">
       <div className="relative flex items-center justify-between max-w-screen-md mx-auto h-[28px]">
         <div className="w-8"></div> {/* Spacer for symmetry */}
         
