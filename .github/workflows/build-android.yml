@@ -1,0 +1,83 @@
+name: Build Android Package
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build APK
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: 'npm'
+          cache-dependency-path: tourism_frontend/package-lock.json
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Dependencies
+        working-directory: tourism_frontend
+        run: npm ci
+
+      - name: Install Capacitor
+        working-directory: tourism_frontend
+        run: |
+          npm install @capacitor/core @capacitor/android
+          npm install -D @capacitor/cli
+
+      - name: Configure Next.js for Static Export
+        working-directory: tourism_frontend
+        run: |
+          cat << 'EOF' > next.config.ts
+          import type { NextConfig } from "next";
+          const nextConfig: NextConfig = {
+            output: "export",
+            images: {
+              unoptimized: true,
+              dangerouslyAllowSVG: true,
+              remotePatterns: [
+                { protocol: 'https', hostname: 'api.dicebear.com' },
+                { protocol: 'https', hostname: 'images.unsplash.com' }
+              ]
+            }
+          };
+          export default nextConfig;
+          EOF
+
+      - name: Build Next.js App
+        working-directory: tourism_frontend
+        run: npm run build
+        env:
+          NEXT_PUBLIC_API_URL: https://hrishikeshdutta-spot-ne-backend.hf.space
+
+      - name: Initialize Capacitor
+        working-directory: tourism_frontend
+        run: |
+          npx cap init SpotNE com.spotne.app --web-dir out
+          npx cap add android
+          npx cap sync android
+
+      - name: Build Android APK
+        working-directory: tourism_frontend/android
+        run: chmod +x gradlew && ./gradlew assembleDebug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: SpotNE-Android-APK
+          path: tourism_frontend/android/app/build/outputs/apk/debug/app-debug.apk
