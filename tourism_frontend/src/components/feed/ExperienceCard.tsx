@@ -3,6 +3,8 @@
 import React, { useState } from 'react';
 import { Heart, MessageCircle, Repeat2, Share, Clock, Tag, Zap, CheckCircle2 } from 'lucide-react';
 import { ExperienceCarousel } from '../ui/ExperienceCarousel';
+import { useEngagement } from '@/hooks/useEngagement';
+import { useEffect } from 'react';
 
 import { Experience } from '@/context/RecommendationEngineContext';
 
@@ -12,6 +14,21 @@ interface ExperienceCardProps {
 
 export const ExperienceCard = ({ experience }: ExperienceCardProps) => {
   const [bookingState, setBookingState] = useState<'idle' | 'scanning' | 'booked'>('idle');
+  const [engagement, setEngagement] = useState(experience.engagement || { likes: 42, comments: 8, reshares: 15 });
+  const { engage, isProcessing } = useEngagement();
+
+  // Listen for real-time updates
+  useEffect(() => {
+    const handleUpdate = (e: any) => {
+      const update = e.detail;
+      if (update.type === 'post' && update.id === Number(experience.id)) {
+        setEngagement(update.counts);
+      }
+    };
+
+    window.addEventListener('engagement_update', handleUpdate);
+    return () => window.removeEventListener('engagement_update', handleUpdate);
+  }, [experience.id]);
 
   const handleBooking = async () => {
     if (bookingState !== 'idle') return;
@@ -19,6 +36,19 @@ export const ExperienceCard = ({ experience }: ExperienceCardProps) => {
     // Simulate scanning / API delay
     await new Promise((r) => setTimeout(r, 1800));
     setBookingState('booked');
+  };
+
+  const handleEngage = async (action: 'like' | 'comment' | 'reshare') => {
+    // Optimistic update for "like" (optional, but feels better)
+    if (action === 'like') {
+      setEngagement(prev => ({ ...prev, likes: prev.likes + 1 }));
+    }
+    
+    const success = await engage(experience.id, action);
+    if (!success && action === 'like') {
+      // Revert if failed
+      setEngagement(prev => ({ ...prev, likes: prev.likes - 1 }));
+    }
   };
 
   return (
@@ -98,17 +128,29 @@ export const ExperienceCard = ({ experience }: ExperienceCardProps) => {
 
         {/* Interaction Matrix (Action Bar) */}
         <div className="flex items-center justify-between max-w-[320px] text-slate-400">
-          <button className="flex items-center gap-2 group/icon hover:text-tactical-green transition-colors">
+          <button 
+            onClick={() => handleEngage('like')}
+            disabled={isProcessing}
+            className="flex items-center gap-2 group/icon hover:text-tactical-green transition-colors disabled:opacity-50"
+          >
             <Heart size={18} className="group-hover/icon:fill-tactical-green/20" />
-            <span className="text-xs font-medium">42</span>
+            <span className="text-xs font-medium">{engagement.likes}</span>
           </button>
-          <button className="flex items-center gap-2 group/icon hover:text-tactical-green transition-colors">
+          <button 
+            onClick={() => handleEngage('comment')}
+            disabled={isProcessing}
+            className="flex items-center gap-2 group/icon hover:text-tactical-green transition-colors disabled:opacity-50"
+          >
             <MessageCircle size={18} />
-            <span className="text-xs font-medium">8</span>
+            <span className="text-xs font-medium">{engagement.comments}</span>
           </button>
-          <button className="flex items-center gap-2 group/icon hover:text-tactical-green transition-colors">
+          <button 
+            onClick={() => handleEngage('reshare')}
+            disabled={isProcessing}
+            className="flex items-center gap-2 group/icon hover:text-tactical-green transition-colors disabled:opacity-50"
+          >
             <Repeat2 size={18} />
-            <span className="text-xs font-medium">15</span>
+            <span className="text-xs font-medium">{engagement.reshares}</span>
           </button>
           <button className="flex items-center gap-2 group/icon hover:text-tactical-green transition-colors">
             <Share size={18} />
