@@ -15,10 +15,12 @@ import { MarketplaceFeed } from '@/components/marketplace/MarketplaceFeed';
 import { MarketplaceUpload } from '@/components/marketplace/MarketplaceUpload';
 import { MyUploads } from '@/components/marketplace/MyUploads';
 import { NotificationsHUD } from '@/components/notifications/NotificationsHUD';
-import { useRecommendationEngine, Artisan, Experience } from '@/context/RecommendationEngineContext';
+import { SkeletonGrid } from '@/components/ui/skeletons';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useRecommendationEngine, FeedItem } from '@/context/RecommendationEngineContext';
 
 export default function Home() {
-  const { recommendedItems, activeCategory } = useRecommendationEngine();
+  const { recommendedItems, activeCategory, isLoading } = useRecommendationEngine();
   const [activeZone, setActiveZone] = React.useState('Home');
   const [searchQuery, setSearchQuery] = React.useState('');
   const [marketplaceTab, setMarketplaceTab] = React.useState<'feed' | 'my-uploads'>('feed');
@@ -83,66 +85,88 @@ export default function Home() {
           )}
 
           <div className="flex flex-col">
-            {activeZone === 'Home' ? (
-              recommendedItems.map((item) => {
-                if (item.type === 'artisan') {
-                  return (
-                    <ArtisanProfileCard 
-                      key={item.id} 
-                      artisan={item} 
-                    />
-                  );
-                }
-                
-                return (
-                  <ExperienceCard 
-                    key={item.id} 
-                    experience={item as Experience} 
-                  />
-                );
-              })
-            ) : activeZone === 'Marketplace' ? (
-              <div className="flex flex-col relative pb-20">
-                {/* Marketplace Sub-tab Toggle */}
-                <div className="flex gap-2 mb-6">
-                  <button
-                    onClick={() => setMarketplaceTab('feed')}
-                    className={`px-4 py-1.5 rounded-full text-xs font-semibold border transition-all ${
-                      marketplaceTab === 'feed'
-                        ? 'bg-tactical-emerald text-white border-tactical-emerald'
-                        : 'border-slate-200 dark:border-white/10 text-slate-500 dark:text-white/50 hover:border-tactical-emerald/40'
-                    }`}
+            <AnimatePresence mode="wait">
+              {activeZone === 'Home' ? (
+                isLoading ? (
+                  <motion.div
+                    key="home-skeleton"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="flex flex-col gap-6"
                   >
-                    Live Feed
-                  </button>
-                  <button
-                    onClick={() => setMarketplaceTab('my-uploads')}
-                    className={`px-4 py-1.5 rounded-full text-xs font-semibold border transition-all ${
-                      marketplaceTab === 'my-uploads'
-                        ? 'bg-tactical-emerald text-white border-tactical-emerald'
-                        : 'border-slate-200 dark:border-white/10 text-slate-500 dark:text-white/50 hover:border-tactical-emerald/40'
-                    }`}
+                    <SkeletonGrid count={3} />
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="home-content"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="flex flex-col"
                   >
-                    My Uploads
-                  </button>
+                    {recommendedItems.map((item: FeedItem) => {
+                      if (item.type === 'artisan') {
+                        return (
+                          <ArtisanProfileCard 
+                            key={item.id} 
+                            artisan={item} 
+                          />
+                        );
+                      }
+                      
+                      return (
+                        <ExperienceCard 
+                          key={item.id} 
+                          experience={item as any} 
+                        />
+                      );
+                    })}
+                  </motion.div>
+                )
+              ) : activeZone === 'Marketplace' ? (
+                <div className="flex flex-col relative pb-20">
+                  {/* Marketplace Sub-tab Toggle */}
+                  <div className="flex gap-2 mb-6">
+                    <button
+                      onClick={() => setMarketplaceTab('feed')}
+                      className={`px-4 py-1.5 rounded-full text-xs font-semibold border transition-all ${
+                        marketplaceTab === 'feed'
+                          ? 'bg-tactical-emerald text-white border-tactical-emerald'
+                          : 'border-slate-200 dark:border-white/10 text-slate-500 dark:text-white/50 hover:border-tactical-emerald/40'
+                      }`}
+                    >
+                      Live Feed
+                    </button>
+                    <button
+                      onClick={() => setMarketplaceTab('my-uploads')}
+                      className={`px-4 py-1.5 rounded-full text-xs font-semibold border transition-all ${
+                        marketplaceTab === 'my-uploads'
+                          ? 'bg-tactical-emerald text-white border-tactical-emerald'
+                          : 'border-slate-200 dark:border-white/10 text-slate-500 dark:text-white/50 hover:border-tactical-emerald/40'
+                      }`}
+                    >
+                      My Uploads
+                    </button>
+                  </div>
+                  {marketplaceTab === 'feed' ? <MarketplaceFeed /> : <MyUploads />}
+                  <MarketplaceUpload />
                 </div>
-                {marketplaceTab === 'feed' ? <MarketplaceFeed /> : <MyUploads />}
-                <MarketplaceUpload />
-              </div>
-            ) : activeZone === 'Profile' ? (
-              <ProfileView />
-            ) : activeZone === 'Compose' ? (
-              <ComposeView onPostComplete={() => setActiveZone('Home')} />
-            ) : activeZone === 'Notifications' ? (
-              <NotificationsHUD />
-            ) : (
-              <div className="flex flex-col items-center justify-center py-20 text-slate-400">
-                <div className="w-16 h-16 rounded-full border border-slate-200 dark:border-slate-800 flex items-center justify-center mb-4">
-                  <div className="w-8 h-8 rounded-full bg-tactical-emerald/10 animate-pulse"></div>
+              ) : activeZone === 'Profile' ? (
+                <ProfileView />
+              ) : activeZone === 'Compose' ? (
+                <ComposeView onPostComplete={() => setActiveZone('Home')} />
+              ) : activeZone === 'Notifications' ? (
+                <NotificationsHUD />
+              ) : (
+                <div className="flex flex-col items-center justify-center py-20 text-slate-400">
+                  <div className="w-16 h-16 rounded-full border border-slate-200 dark:border-slate-800 flex items-center justify-center mb-4">
+                    <div className="w-8 h-8 rounded-full bg-tactical-emerald/10 animate-pulse"></div>
+                  </div>
+                  <p className="text-sm font-medium">Synchronizing {activeZone} Data...</p>
                 </div>
-                <p className="text-sm font-medium">Synchronizing {activeZone} Data...</p>
-              </div>
-            )}
+              )}
+            </AnimatePresence>
           </div>
 
           {activeZone === 'Home' && (

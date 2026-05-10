@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { motion } from 'framer-motion';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { Settings, Edit, User, MapPin, Shield, Star, LogOut, Mail, Lock } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
@@ -24,10 +25,14 @@ export const ProfileView = () => {
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-slate-400">
-        <div className="w-16 h-16 rounded-full border border-slate-200 dark:border-slate-800 flex items-center justify-center mb-4">
-          <div className="w-8 h-8 rounded-full bg-tactical-emerald/10 animate-pulse"></div>
-        </div>
-        <p className="text-sm font-medium">Authenticating Protocol...</p>
+        <motion.div
+          animate={{ scale: [1, 1.05, 1] }}
+          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+          className="w-20 h-20 rounded-2xl glass-card flex items-center justify-center skeleton-shimmer mb-6"
+        >
+          <div className="w-8 h-8 rounded-full bg-tactical-emerald/20 animate-pulse" />
+        </motion.div>
+        <p className="text-sm font-medium animate-pulse">Authenticating Protocol...</p>
       </div>
     );
   }

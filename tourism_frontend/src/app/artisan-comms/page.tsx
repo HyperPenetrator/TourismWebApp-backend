@@ -5,6 +5,8 @@ import Image from 'next/image';
 import { ShieldCheck, Send, MessageSquare, Info, ChevronLeft, Award } from 'lucide-react';
 import Link from 'next/link';
 import { useArtisanComms } from '@/context/ArtisanCommsContext';
+import { SkeletonBlock, SkeletonList, SkeletonAvatar } from '@/components/ui/skeletons';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface Artisan {
   id: string;
@@ -41,7 +43,7 @@ const ARTISANS: Artisan[] = [
 ];
 
 export default function ArtisanCommsPage() {
-  const { messages, sendMessage } = useArtisanComms();
+  const { messages, sendMessage, isLoading } = useArtisanComms();
   const [selectedArtisan, setSelectedArtisan] = useState<Artisan>(ARTISANS[0]);
   const [inputText, setInputText] = useState('');
   const chatEndRef = useRef<HTMLDivElement>(null);
@@ -86,115 +88,173 @@ export default function ArtisanCommsPage() {
       </div>
 
       <div className="flex flex-1 gap-6 overflow-hidden">
-        {/* Artisan List */}
-        <div className="hidden lg:flex flex-col w-72 gap-3 overflow-y-auto no-scrollbar">
-          {ARTISANS.map((artisan) => (
-            <button
-              key={artisan.id}
-              onClick={() => setSelectedArtisan(artisan)}
-              className={`flex items-center gap-3 p-4 rounded-2xl transition-all duration-300 border ${
-                selectedArtisan.id === artisan.id
-                  ? 'bg-amber-500/10 border-amber-500/40'
-                  : 'bg-white/5 border-white/5 hover:bg-white/10'
-              }`}
+        <AnimatePresence mode="wait">
+          {isLoading ? (
+            <motion.div
+              key="sidebar-skeleton"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              className="hidden lg:flex flex-col w-72 gap-3"
             >
-              <div className="relative">
-                <Image 
-                  src={artisan.avatar} 
-                  alt={artisan.name} 
-                  width={48}
-                  height={48}
-                  className="rounded-xl object-cover grayscale brightness-75" 
-                />
-                <div className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 border-2 border-black"></div>
-              </div>
-              <div className="flex flex-col items-start">
-                <span className={`text-sm font-bold tracking-tight ${selectedArtisan.id === artisan.id ? 'text-amber-500' : 'text-white'}`}>
-                  {artisan.name}
-                </span>
-                <span className="text-[10px] text-white/40 uppercase tracking-tighter">{artisan.specialty}</span>
-              </div>
-            </button>
-          ))}
-        </div>
+              <SkeletonList count={4} variant="horizontal" />
+            </motion.div>
+          ) : (
+            <motion.div
+              key="sidebar"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="hidden lg:flex flex-col w-72 gap-3 overflow-y-auto no-scrollbar"
+            >
+              {ARTISANS.map((artisan) => (
+                <button
+                  key={artisan.id}
+                  onClick={() => setSelectedArtisan(artisan)}
+                  className={`flex items-center gap-3 p-4 rounded-2xl transition-all duration-300 border ${
+                    selectedArtisan.id === artisan.id
+                      ? 'bg-amber-500/10 border-amber-500/40'
+                      : 'bg-white/5 border-white/5 hover:bg-white/10'
+                  }`}
+                >
+                  <div className="relative">
+                    <Image 
+                      src={artisan.avatar} 
+                      alt={artisan.name} 
+                      width={48}
+                      height={48}
+                      className="rounded-xl object-cover grayscale brightness-75" 
+                    />
+                    <div className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 border-2 border-black"></div>
+                  </div>
+                  <div className="flex flex-col items-start">
+                    <span className={`text-sm font-bold tracking-tight ${selectedArtisan.id === artisan.id ? 'text-amber-500' : 'text-white'}`}>
+                      {artisan.name}
+                    </span>
+                    <span className="text-[10px] text-white/40 uppercase tracking-tighter">{artisan.specialty}</span>
+                  </div>
+                </button>
+              ))}
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Chat Area */}
         <div className="flex-1 flex flex-col glass-panel rounded-3xl border-white/5 bg-black/40 backdrop-blur-xl overflow-hidden relative">
-          {/* Chat Background Decals */}
-          <div className="absolute top-4 right-4 text-[60px] font-black text-white/5 select-none pointer-events-none italic tracking-tighter">
-            DIRECT
-          </div>
-          
-          {/* Artisan Header */}
-          <div className="p-5 border-b border-white/5 flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500/20 to-emerald-500/20 flex items-center justify-center border border-white/10">
-                <MessageSquare className="w-5 h-5 text-amber-500" />
-              </div>
-              <div>
-                <h3 className="text-base font-bold text-white tracking-wide uppercase">{selectedArtisan.name}</h3>
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
-                  <span className="text-[10px] text-emerald-500 font-mono uppercase tracking-widest">Active Connection</span>
-                </div>
-              </div>
-            </div>
-            <button className="p-2 rounded-xl bg-white/5 hover:bg-white/10 transition-colors">
-              <Info className="w-5 h-5 text-white/40" />
-            </button>
-          </div>
-
-          {/* Messages */}
-          <div className="flex-1 overflow-y-auto p-6 space-y-6 no-scrollbar">
-            {messages.map((msg) => (
-              <div
-                key={msg.id}
-                className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+          <AnimatePresence mode="wait">
+            {isLoading ? (
+              <motion.div
+                key="chat-skeleton"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="flex-1 flex flex-col p-6 space-y-6"
               >
-                <div className={`max-w-[80%] flex flex-col ${msg.sender === 'user' ? 'items-end' : 'items-start'}`}>
-                  <div className={`px-5 py-3 rounded-2xl text-sm leading-relaxed ${
-                    msg.sender === 'user'
-                      ? 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-100 rounded-tr-none'
-                      : 'bg-white/5 border border-white/10 text-white/80 rounded-tl-none'
-                  }`}>
-                    {msg.text}
+                <div className="flex items-center gap-4 mb-4">
+                  <SkeletonAvatar className="w-10 h-10" rounded="xl" />
+                  <div className="space-y-2">
+                    <SkeletonBlock className="h-4 w-32 rounded-md" />
+                    <SkeletonBlock className="h-2 w-20 rounded-md" />
                   </div>
-                  <span className="text-[9px] font-mono text-white/20 mt-1 uppercase">{msg.timestamp}</span>
                 </div>
-              </div>
-            ))}
-            <div ref={chatEndRef} />
-          </div>
-
-          {/* Input Area */}
-          <div className="p-5 border-t border-white/5 bg-black/20">
-            <div className="relative flex items-center gap-3">
-              <input
-                type="text"
-                value={inputText}
-                onChange={(e) => setInputText(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
-                placeholder="Request custom weave patterns..."
-                className="flex-1 bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-sm text-white placeholder:text-white/20 focus:outline-none focus:border-amber-500/50 transition-colors"
-              />
-              <button
-                onClick={handleSendMessage}
-                className="p-4 rounded-2xl bg-amber-500 text-black hover:bg-amber-400 transition-all shadow-[0_0_20px_rgba(245,158,11,0.3)] group"
+                <div className="flex-1 space-y-8">
+                  <div className="flex flex-col gap-3">
+                    <SkeletonBlock className="h-12 w-2/3 rounded-2xl rounded-tl-none" />
+                    <SkeletonBlock className="h-10 w-1/2 rounded-2xl rounded-tl-none" />
+                  </div>
+                  <div className="flex flex-col items-end gap-3">
+                    <SkeletonBlock className="h-12 w-1/2 rounded-2xl rounded-tr-none" />
+                  </div>
+                  <div className="flex flex-col gap-3">
+                    <SkeletonBlock className="h-16 w-3/4 rounded-2xl rounded-tl-none" />
+                  </div>
+                </div>
+                <SkeletonBlock className="h-12 w-full rounded-2xl" />
+              </motion.div>
+            ) : (
+              <motion.div
+                key="chat-content"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="flex flex-1 flex-col overflow-hidden"
               >
-                <Send className="w-5 h-5 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
-              </button>
-            </div>
-            <div className="mt-3 flex items-center justify-center gap-6">
-              <div className="flex items-center gap-1.5 opacity-40">
-                <ShieldCheck className="w-3 h-3" />
-                <span className="text-[8px] font-mono uppercase tracking-widest text-white">End-to-End Encrypted</span>
-              </div>
-              <div className="flex items-center gap-1.5 opacity-40">
-                <Award className="w-3 h-3" />
-                <span className="text-[8px] font-mono uppercase tracking-widest text-white">Verified Identity</span>
-              </div>
-            </div>
-          </div>
+                {/* Chat Background Decals */}
+                <div className="absolute top-4 right-4 text-[60px] font-black text-white/5 select-none pointer-events-none italic tracking-tighter">
+                  DIRECT
+                </div>
+                
+                {/* Artisan Header */}
+                <div className="p-5 border-b border-white/5 flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500/20 to-emerald-500/20 flex items-center justify-center border border-white/10">
+                      <MessageSquare className="w-5 h-5 text-amber-500" />
+                    </div>
+                    <div>
+                      <h3 className="text-base font-bold text-white tracking-wide uppercase">{selectedArtisan.name}</h3>
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+                        <span className="text-[10px] text-emerald-500 font-mono uppercase tracking-widest">Active Connection</span>
+                      </div>
+                    </div>
+                  </div>
+                  <button className="p-2 rounded-xl bg-white/5 hover:bg-white/10 transition-colors">
+                    <Info className="w-5 h-5 text-white/40" />
+                  </button>
+                </div>
+
+                {/* Messages */}
+                <div className="flex-1 overflow-y-auto p-6 space-y-6 no-scrollbar">
+                  {messages.map((msg) => (
+                    <div
+                      key={msg.id}
+                      className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+                    >
+                      <div className={`max-w-[80%] flex flex-col ${msg.sender === 'user' ? 'items-end' : 'items-start'}`}>
+                        <div className={`px-5 py-3 rounded-2xl text-sm leading-relaxed ${
+                          msg.sender === 'user'
+                            ? 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-100 rounded-tr-none'
+                            : 'bg-white/5 border border-white/10 text-white/80 rounded-tl-none'
+                        }`}>
+                          {msg.text}
+                        </div>
+                        <span className="text-[9px] font-mono text-white/20 mt-1 uppercase">{msg.timestamp}</span>
+                      </div>
+                    </div>
+                  ))}
+                  <div ref={chatEndRef} />
+                </div>
+
+                {/* Input Area */}
+                <div className="p-5 border-t border-white/5 bg-black/20">
+                  <div className="relative flex items-center gap-3">
+                    <input
+                      type="text"
+                      value={inputText}
+                      onChange={(e) => setInputText(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
+                      placeholder="Request custom weave patterns..."
+                      className="flex-1 bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-sm text-white placeholder:text-white/20 focus:outline-none focus:border-amber-500/50 transition-colors"
+                    />
+                    <button
+                      onClick={handleSendMessage}
+                      className="p-4 rounded-2xl bg-amber-500 text-black hover:bg-amber-400 transition-all shadow-[0_0_20px_rgba(245,158,11,0.3)] group"
+                    >
+                      <Send className="w-5 h-5 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+                    </button>
+                  </div>
+                  <div className="mt-3 flex items-center justify-center gap-6">
+                    <div className="flex items-center gap-1.5 opacity-40">
+                      <ShieldCheck className="w-3 h-3" />
+                      <span className="text-[8px] font-mono uppercase tracking-widest text-white">End-to-End Encrypted</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 opacity-40">
+                      <Award className="w-3 h-3" />
+                      <span className="text-[8px] font-mono uppercase tracking-widest text-white">Verified Identity</span>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </div>
     </div>

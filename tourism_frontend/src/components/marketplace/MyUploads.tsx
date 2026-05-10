@@ -5,6 +5,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Package, Tag, Clock, ShoppingBag } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 
+import { SkeletonGrid } from '@/components/ui/skeletons';
+
 import { MarketplaceItem } from '@/lib/types';
 
 export const MyUploads = () => {
@@ -59,24 +61,25 @@ export const MyUploads = () => {
         </div>
       </div>
 
-      {loading && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="glass-card overflow-hidden animate-pulse">
-              <div className="aspect-square bg-slate-200 dark:bg-white/5" />
-              <div className="p-4 space-y-2">
-                <div className="h-4 bg-slate-200 dark:bg-white/10 rounded w-3/4" />
-                <div className="h-3 bg-slate-200 dark:bg-white/5 rounded w-1/2" />
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {!loading && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <AnimatePresence mode="popLayout">
-            {items.map((item) => (
+      <AnimatePresence mode="wait">
+        {loading ? (
+          <motion.div
+            key="skeleton"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <SkeletonGrid count={4} />
+          </motion.div>
+        ) : (
+          <motion.div
+            key="content"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="grid grid-cols-1 md:grid-cols-2 gap-6"
+          >
+            <AnimatePresence mode="popLayout">
+              {items.map((item) => (
               <motion.div
                 key={item.id}
                 layout
@@ -133,8 +136,9 @@ export const MyUploads = () => {
               <p className="text-sm text-slate-400 dark:text-white/40">Go to the Marketplace and list your first item</p>
             </div>
           )}
-        </div>
-      )}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

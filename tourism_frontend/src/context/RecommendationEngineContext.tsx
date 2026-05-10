@@ -77,8 +77,13 @@ export const RecommendationProvider = ({ children }: { children: ReactNode }) =>
   const [swipeDirection, setSwipeDirection] = useState<SwipeDirection>(null);
   
   // Status States
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  React.useEffect(() => {
+    const timer = setTimeout(() => setIsLoading(false), 1000);
+    return () => clearTimeout(timer);
+  }, []);
 
   // Category selection handler
   const handleSetCategory = useCallback((category: string | null) => {

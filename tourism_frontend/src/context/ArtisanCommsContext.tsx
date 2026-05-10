@@ -21,6 +21,7 @@ interface Commission {
 interface ArtisanCommsContextType {
   messages: Message[];
   commissions: Commission[];
+  isLoading: boolean;
   sendMessage: (text: string, artisanId: string) => void;
   requestCommission: (title: string, description: string, artisanId: string, budget?: string) => void;
 }
@@ -28,6 +29,7 @@ interface ArtisanCommsContextType {
 const ArtisanCommsContext = createContext<ArtisanCommsContextType | undefined>(undefined);
 
 export const ArtisanCommsProvider = ({ children }: { children: ReactNode }) => {
+  const [isLoading, setIsLoading] = useState(true);
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
@@ -36,6 +38,11 @@ export const ArtisanCommsProvider = ({ children }: { children: ReactNode }) => {
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     }
   ]);
+
+  React.useEffect(() => {
+    const timer = setTimeout(() => setIsLoading(false), 1500);
+    return () => clearTimeout(timer);
+  }, []);
 
   const [commissions, setCommissions] = useState<Commission[]>([]);
 
@@ -77,7 +84,7 @@ export const ArtisanCommsProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <ArtisanCommsContext.Provider value={{ messages, commissions, sendMessage, requestCommission }}>
+    <ArtisanCommsContext.Provider value={{ messages, commissions, isLoading, sendMessage, requestCommission }}>
       {children}
     </ArtisanCommsContext.Provider>
   );

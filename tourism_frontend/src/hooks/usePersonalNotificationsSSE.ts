@@ -15,11 +15,15 @@ export function usePersonalNotificationsSSE() {
   const [notification, setNotification] = useState<NotificationItem | null>(null);
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [isConnected, setIsConnected] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const { token, isAuthenticated } = useAuth();
 
   // Hydrate from REST on mount
   useEffect(() => {
-    if (!isAuthenticated || !token) return;
+    if (!isAuthenticated || !token) {
+      setIsLoading(false);
+      return;
+    }
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
     console.log(`[Notifications] Loading history from ${apiUrl}...`);
     fetch(`${apiUrl}/api/notifications`, {
@@ -37,7 +41,8 @@ export function usePersonalNotificationsSSE() {
         }));
         setNotifications(mapped);
       })
-      .catch((e) => console.error('[Notifications] Failed to load history:', e));
+      .catch((e) => console.error('[Notifications] Failed to load history:', e))
+      .finally(() => setIsLoading(false));
   }, [token, isAuthenticated]);
 
   // Live SSE stream
@@ -107,5 +112,5 @@ export function usePersonalNotificationsSSE() {
     }
   };
 
-  return { notification, notifications, isConnected, clearNotification: () => setNotification(null), markRead };
+  return { notification, notifications, isConnected, isLoading, clearNotification: () => setNotification(null), markRead };
 }
