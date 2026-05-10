@@ -12,13 +12,13 @@ router = APIRouter(tags=["Marketplace"])
 
 @router.post("/upload")
 async def upload_item(
-    background_tasks: BackgroundTasks,
     image: UploadFile = File(...),
     description: str = Form(...),
     price: float = Form(...),
     tags: str = Form(...),
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    background_tasks: BackgroundTasks = None
 ):
     # 1. Save Image
     image_url = save_upload_file(image)

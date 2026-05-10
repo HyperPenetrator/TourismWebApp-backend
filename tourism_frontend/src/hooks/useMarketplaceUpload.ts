@@ -38,12 +38,19 @@ export const useMarketplaceUpload = () => {
 
       if (!response.ok) {
         const errData = await response.json();
-        throw new Error(errData.detail || 'Upload failed');
+        console.error('[useMarketplaceUpload] Server Error Detail:', errData);
+        
+        // Handle FastAPI validation errors which return an array in 'detail'
+        const errorMessage = Array.isArray(errData.detail) 
+          ? errData.detail.map((e: any) => `${e.loc.join('.')}: ${e.msg}`).join(', ')
+          : errData.detail || 'Upload failed';
+          
+        throw new Error(errorMessage);
       }
 
       return true;
     } catch (err: any) {
-      console.error('[useMarketplaceUpload] Upload failed:', err);
+      console.error('[useMarketplaceUpload] Upload error object:', err);
       setError(err.message || 'Upload failed');
       return false;
     } finally {
