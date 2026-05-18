@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Home, Store, Plus, Bell, User } from 'lucide-react';
+import { Home, Store, Plus, Bell, BarChart3, User } from 'lucide-react';
 
 export const BottomNav = ({ 
   activeZone, 
@@ -40,6 +40,12 @@ export const BottomNav = ({
           label="Notifs" 
           active={activeZone === 'Notifications'} 
           onClick={() => onZoneChange('Notifications')}
+        />
+        <NavItem 
+          icon={<BarChart3 size={22} strokeWidth={2} />} 
+          label="Analytics" 
+          active={activeZone === 'Analytics'} 
+          onClick={() => onZoneChange('Analytics')}
         />
         <NavItem 
           icon={<User size={22} strokeWidth={2} />} 

@@ -9,3 +9,4 @@ python-jose[cryptography]
 python-dotenv
 python-multipart
 email-validator
+requests>=2.31.0

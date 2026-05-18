@@ -14,6 +14,8 @@ def save_upload_file(upload_file: UploadFile, destination_dir: str = UPLOAD_DIR)
         raise HTTPException(status_code=415, detail="Unsupported file type")
     
     ext = upload_file.filename.split(".")[-1] if "." in upload_file.filename else ""
+    # Sanitize extension to prevent path traversal
+    ext = "".join(c for c in ext if c.isalnum())
     filename = f"{uuid.uuid4()}.{ext}" if ext else str(uuid.uuid4())
     filepath = os.path.join(destination_dir, filename)
     

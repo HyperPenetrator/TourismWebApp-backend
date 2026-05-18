@@ -103,6 +103,9 @@ async def secure_item(
     seller = db.query(User).filter(User.id == item.seller_id).first()
     if not seller:
         raise HTTPException(status_code=404, detail="Seller not found")
+        
+    if current_user.id == seller.id:
+        raise HTTPException(status_code=400, detail="You cannot order your own item")
     
     # --- Persist notification ---
     msg = f"Good news! {current_user.username} just ordered your item: '{item.title}'"

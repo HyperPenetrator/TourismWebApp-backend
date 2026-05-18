@@ -15,6 +15,7 @@ import { MarketplaceFeed } from '@/components/marketplace/MarketplaceFeed';
 import { MarketplaceUpload } from '@/components/marketplace/MarketplaceUpload';
 import { MyUploads } from '@/components/marketplace/MyUploads';
 import { NotificationsHUD } from '@/components/notifications/NotificationsHUD';
+import { AnalyticsDashboard } from '@/components/analytics/AnalyticsDashboard';
 import { SkeletonGrid } from '@/components/ui/skeletons';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRecommendationEngine, FeedItem } from '@/context/RecommendationEngineContext';
@@ -158,6 +159,8 @@ export default function Home() {
                 <ComposeView onPostComplete={() => setActiveZone('Home')} />
               ) : activeZone === 'Notifications' ? (
                 <NotificationsHUD />
+              ) : activeZone === 'Analytics' ? (
+                <AnalyticsDashboard />
               ) : (
                 <div className="flex flex-col items-center justify-center py-20 text-slate-400">
                   <div className="w-16 h-16 rounded-full border border-slate-200 dark:border-slate-800 flex items-center justify-center mb-4">

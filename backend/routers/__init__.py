@@ -1,2 +1,2 @@
 # Router exports for clean imports in main.py
-from . import auth, marketplace, notifications, posts, realtime
+from . import auth, marketplace, notifications, posts, realtime, analytics

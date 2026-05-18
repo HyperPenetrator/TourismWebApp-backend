@@ -31,6 +31,9 @@ async def register(user_data: UserRegister, db: Session = Depends(get_db)):
         if db.query(User).filter(User.email == user_data.email).first():
             raise HTTPException(status_code=400, detail="Email already registered")
 
+        if user_data.role not in ["traveler", "artisan", "explorer"]:
+            raise HTTPException(status_code=400, detail="Invalid role specified")
+
         hashed_password = get_password_hash(user_data.password)
         user = User(
             username=user_data.username,

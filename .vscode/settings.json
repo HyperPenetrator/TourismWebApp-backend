@@ -1,4 +1,14 @@
 {
+    // ── Tailwind CSS v4: suppress false-positive at-rule warnings ─────────────
+    // VS Code's built-in CSS validator doesn't know about Tailwind v4 at-rules
+    // (@theme, @custom-variant, @apply, @utility). The code is valid — this
+    // just silences the noise. Install "Tailwind CSS IntelliSense" extension
+    // (bradlc.vscode-tailwindcss) for accurate, Tailwind-aware validation.
+    "css.validate": false,
+    "scss.validate": false,
+    "tailwindCSS.includeLanguages": {
+        "css": "css"
+    },
     "cSpell.words": [
         "Aman",
         "Baruah",
@@ -40,12 +50,14 @@
         "reconnections",
         "RESHARE",
         "reshares",
+        "ridx",
         "Ritu",
         "Salmora",
         "Satras",
         "scanline",
         "Sharma",
         "Sivasagar",
+        "sparkline",
         "spotne",
         "stdlib",
         "Sualkuchi",

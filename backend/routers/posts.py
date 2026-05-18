@@ -63,6 +63,11 @@ async def engage_post(
     db: Session = Depends(get_db)
 ):
     """Handle social actions (like, comment, reshare) and broadcast updates."""
+    if text:
+        # Basic sanitization to prevent stored XSS
+        import re
+        text = re.sub(r'<[^>]*>', '', text).strip()
+        
     if action not in ["like", "comment", "reshare"]:
         raise HTTPException(status_code=400, detail="Invalid action type")
         

@@ -1,8 +1,9 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from routers import marketplace, auth, notifications, posts, realtime
+from routers import marketplace, auth, notifications, posts, realtime, analytics
 from database import engine, Base
+from middleware import TrafficLoggingMiddleware
 import os
 
 # Create tables
@@ -10,6 +11,10 @@ Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Spot@NE API", version="1.0.0")
 
+# ── Traffic logging (innermost — runs after CORS) ────────────────────────────
+app.add_middleware(TrafficLoggingMiddleware)
+
+# ── CORS ──────────────────────────────────────────────────────────────────────
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -29,6 +34,7 @@ app.include_router(auth.router, prefix="/api/auth", tags=["Authentication"])
 app.include_router(marketplace.router, prefix="/api/marketplace", tags=["Marketplace"])
 app.include_router(notifications.router, prefix="/api/notifications", tags=["Notifications"])
 app.include_router(posts.router, prefix="/api/posts", tags=["Social Feed"])
+app.include_router(analytics.router, prefix="/api/analytics", tags=["Analytics"])
 
 # Real-time Communication Routes
 app.include_router(realtime.router, tags=["Real-time"])
