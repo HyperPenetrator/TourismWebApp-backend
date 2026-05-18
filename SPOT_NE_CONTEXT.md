@@ -48,10 +48,13 @@ npm run dev
 - **Authentication**: JWT-based login/registration with secure route protection.
 
 ## Recent Updates
+- **Skeleton Screen Loader**: Integrated full shimmer loading screens and glassmorphic skeleton cards across the feed, profile, notifications, and marketplace modules using `framer-motion` crossfade transitions to prevent layout shifts.
+- **Historical Data Persistency**: Supplemented real-time SSE streams with SQLite persistent storage, exposing RESTful endpoints (`GET /api/notifications`, `GET /api/marketplace/my-items`, `GET /api/posts`) to hydrate the frontend with historical data on initial load.
+- **CORS & Form Accessibility**: Enabled cross-origin API communication between Vercel and Hugging Face, resolved console issues by adding `id` and `name` attributes to all authentication forms, and added robust exponential backoff retry logic to SSE EventSource connections.
 - **Hugging Face Deployment**: Backend successfully deployed to HF Spaces using the `scripts/upload_to_hf.py` script.
 - **SSE Stabilization**: Fixed HTTP/2 Protocol Errors caused by proxy buffering on HF Spaces by applying `X-Accel-Buffering: no` headers.
-- **CORS & Auth Fixes**: Enabled cross-origin API communication between Vercel and HF Spaces, and fixed 307 Redirect token-dropping issues for `/api/notifications`.
 - **UI Enhancements**: Integrated a global Light/Dark mode toggle to the TopBar utility section.
 
 ---
-*Last Updated on 2026-05-07 by Antigravity*
+*Last Updated on 2026-05-19 by Antigravity*
+

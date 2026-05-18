@@ -30,7 +30,7 @@ The project is divided into three main modules:
 ### 1. Prerequisites
 - Node.js 18+
 - Python 3.10+
-- `pip` or `poetry`
+- `pip`
 
 ### 2. Frontend Setup
 ```bash
@@ -41,26 +41,26 @@ npm run dev
 The app will be available at [http://localhost:3000](http://localhost:3000).
 
 ### 3. Backend Setup
-To enable the Live HUD and metrics:
+To start the persistent SQLite backend and SSE/WebSocket real-time services:
 ```bash
 cd backend
 pip install -r requirements.txt
-python websocket_mock.py
+uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 ```
-The mock metrics service runs on port `8001`.
+The backend API and telemetry services run on [http://localhost:8000](http://localhost:8000).
 
 ---
 
 ## 📁 Repository Structure
 ```text
 Spot@NE/
-├── backend/                # WebSocket mocks and FastAPI services
-├── tourism_frontend/       # Main Next.js application
+├── backend/                # FastAPI services, SQLite database & persistent routers
+├── tourism_frontend/       # Main Next.js application with Tailwind CSS 4 & Framer Motion
 │   ├── src/
-│   │   ├── components/    # Tactical UI elements (HUDs, Scanners)
-│   │   ├── context/       # Recommendation & Comms state
-│   │   └── lib/           # Analysis engines & mock data
-└── NER-Heritage-MCP/       # Heritage Model Context Protocol definitions
+│   │   ├── components/    # Tactical UI elements, skeleton loaders, and glassmorphic HUDs
+│   │   ├── context/       # Auth, Recommendation, and Comms state engines
+│   │   └── lib/           # Analysis engine, types, and utility files
+└── NER-Heritage-MCP/       # Heritage Model Context Protocol definitions & social tools
 ```
 
 ## 📜 Documentation
